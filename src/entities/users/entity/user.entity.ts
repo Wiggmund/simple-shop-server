@@ -1,7 +1,7 @@
-import { Comment } from 'src/entities/comments/entity/comment.entity';
-import { Photo } from 'src/entities/photos/entity/photo.entity';
-import { Role } from 'src/entities/roles/entity/role.entity';
-import { Transaction } from 'src/entities/transactions/entity/transaction.entity';
+import { Comment } from '../../comments/entity/comment.entity';
+import { Photo } from '../../photos/entity/photo.entity';
+import { Role } from '../../roles/entity/role.entity';
+import { Transaction } from '../../transactions/entity/transaction.entity';
 import {
 	Column,
 	Entity,
@@ -11,7 +11,7 @@ import {
 	PrimaryGeneratedColumn
 } from 'typeorm';
 
-@Entity()
+@Entity('users')
 export class User {
 	@PrimaryGeneratedColumn()
 	id: number;

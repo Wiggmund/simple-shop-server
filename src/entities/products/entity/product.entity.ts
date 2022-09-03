@@ -1,9 +1,9 @@
-import { Attribute } from 'src/entities/attributes/entity/attribute.entity';
-import { Category } from 'src/entities/categories/entity/category.entity';
-import { Comment } from 'src/entities/comments/entity/comment.entity';
-import { Photo } from 'src/entities/photos/entity/photo.entity';
-import { Transaction } from 'src/entities/transactions/entity/transaction.entity';
-import { Vendor } from 'src/entities/vendors/entity/vendor.entity';
+import { Attribute } from '../../attributes/entity/attribute.entity';
+import { Category } from '../../categories/entity/category.entity';
+import { Comment } from '../../comments/entity/comment.entity';
+import { Photo } from '../../photos/entity/photo.entity';
+import { Transaction } from '../../transactions/entity/transaction.entity';
+import { Vendor } from '../../vendors/entity/vendor.entity';
 import {
 	Column,
 	Entity,
@@ -14,7 +14,7 @@ import {
 	PrimaryGeneratedColumn
 } from 'typeorm';
 
-@Entity()
+@Entity('products')
 export class Product {
 	@PrimaryGeneratedColumn()
 	id: number;

@@ -1,8 +1,8 @@
-import { Product } from 'src/entities/products/entity/product.entity';
-import { User } from 'src/entities/users/entity/user.entity';
+import { Product } from '../../products/entity/product.entity';
+import { User } from '../../users/entity/user.entity';
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity()
+@Entity('photos')
 export class Photo {
 	@PrimaryGeneratedColumn()
 	id: number;
