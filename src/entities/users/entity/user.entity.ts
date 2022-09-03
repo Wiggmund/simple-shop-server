@@ -24,8 +24,8 @@ export class User {
 	@Column()
 	lastName: string;
 
-	@Column('timestamp')
-	birthday: number;
+	@Column()
+	birthday: string;
 
 	// Registration data
 
@@ -38,10 +38,16 @@ export class User {
 	@Column({ unique: true })
 	phone: string;
 
-	@Column()
+	@Column({
+		default: false,
+		nullable: true
+	})
 	isActivated: boolean;
 
-	@Column({ unique: true })
+	@Column({
+		unique: true,
+		nullable: true
+	})
 	activationLink: string;
 
 	// Relations

@@ -8,6 +8,8 @@ import { Product } from './products/entity/product.entity';
 import { Role } from './roles/entity/role.entity';
 import { Transaction } from './transactions/entity/transaction.entity';
 import { User } from './users/entity/user.entity';
+import { UsersController } from './users/users.controller';
+import { UsersService } from './users/users.service';
 import { Vendor } from './vendors/entity/vendor.entity';
 
 @Module({
@@ -23,6 +25,8 @@ import { Vendor } from './vendors/entity/vendor.entity';
 			Role,
 			Photo
 		])
-	]
+	],
+	controllers: [UsersController],
+	providers: [UsersService]
 })
 export class EntitiesModule {}
