@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Photo } from 'src/entities/photos/entity/photo.entity';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class Product {
@@ -19,4 +20,7 @@ export class Product {
 
 	@Column()
 	isActive: boolean;
+
+	@OneToMany(() => Photo, (photo) => photo.product)
+	photos: Photo[];
 }

@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Photo } from 'src/entities/photos/entity/photo.entity';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class User {
@@ -32,4 +33,9 @@ export class User {
 
 	@Column({ unique: true })
 	activationLink: string;
+
+	// Relations
+
+	@OneToMany(() => Photo, (photo) => photo.user)
+	photos: Photo[];
 }
