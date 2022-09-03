@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { User } from 'src/entities/users/entity/user.entity';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class Transaction {
@@ -10,4 +11,7 @@ export class Transaction {
 
 	@Column('float4')
 	full_price: number;
+
+	@ManyToOne(() => User, (user) => user.transactions)
+	user: User;
 }

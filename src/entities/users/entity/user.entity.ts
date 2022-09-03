@@ -1,5 +1,15 @@
+import { Comment } from 'src/entities/comments/entity/comment.entity';
 import { Photo } from 'src/entities/photos/entity/photo.entity';
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Role } from 'src/entities/roles/entity/role.entity';
+import { Transaction } from 'src/entities/transactions/entity/transaction.entity';
+import {
+	Column,
+	Entity,
+	JoinTable,
+	ManyToMany,
+	OneToMany,
+	PrimaryGeneratedColumn
+} from 'typeorm';
 
 @Entity()
 export class User {
@@ -38,4 +48,14 @@ export class User {
 
 	@OneToMany(() => Photo, (photo) => photo.user)
 	photos: Photo[];
+
+	@OneToMany(() => Comment, (comment) => comment.user)
+	comments: Comment[];
+
+	@OneToMany(() => Transaction, (transaction) => transaction.user)
+	transactions: Transaction[];
+
+	@ManyToMany(() => Role, (role) => role.users)
+	@JoinTable()
+	roles: Role[];
 }
