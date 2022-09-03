@@ -1,3 +1,4 @@
+import { Product } from 'src/entities/products/entity/product.entity';
 import { User } from 'src/entities/users/entity/user.entity';
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
@@ -14,4 +15,7 @@ export class Comment {
 
 	@ManyToOne(() => User, (user) => user.comments)
 	user: User;
+
+	@ManyToOne(() => Product, (product) => product.comments)
+	product: Product;
 }
