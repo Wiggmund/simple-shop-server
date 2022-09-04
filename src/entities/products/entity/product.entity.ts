@@ -28,10 +28,10 @@ export class Product {
 	@Column('float4')
 	price: number;
 
-	@Column()
+	@Column({ default: 0 })
 	quantity: number;
 
-	@Column()
+	@Column({ default: true })
 	isActive: boolean;
 
 	@ManyToMany(() => Attribute, (attribute) => attribute.products)
