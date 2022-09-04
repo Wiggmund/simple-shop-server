@@ -5,7 +5,7 @@ import { FindOptionsWhere, Repository } from 'typeorm';
 export class EntitiesService {
 	async checkForDublicates<D, T extends D, E>(
 		dto: D,
-		uniqueFields: T,
+		uniqueFields: T, // Used just for getting keys
 		repository: Repository<E>,
 		entityName = 'Entity'
 	): Promise<E> {
