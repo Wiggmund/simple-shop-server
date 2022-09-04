@@ -11,6 +11,9 @@ import { User } from './users/entity/user.entity';
 import { UsersController } from './users/users.controller';
 import { UsersService } from './users/users.service';
 import { Vendor } from './vendors/entity/vendor.entity';
+import { VendorsController } from './vendors/vendors.controller';
+import { VendorsService } from './vendors/vendors.service';
+import { EntitiesService } from './entities.service';
 
 @Module({
 	imports: [
@@ -26,7 +29,7 @@ import { Vendor } from './vendors/entity/vendor.entity';
 			Photo
 		])
 	],
-	controllers: [UsersController],
-	providers: [UsersService]
+	controllers: [UsersController, VendorsController],
+	providers: [EntitiesService, UsersService, VendorsService]
 })
 export class EntitiesModule {}
