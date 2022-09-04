@@ -22,6 +22,8 @@ import { ProductsService } from './products/products.service';
 import { ProductsController } from './products/products.controller';
 import { CommentsService } from './comments/comments.service';
 import { CommentsController } from './comments/comments.controller';
+import { CategoriesService } from './categories/categories.service';
+import { CategoriesController } from './categories/categories.controller';
 
 @Module({
 	imports: [
@@ -43,7 +45,8 @@ import { CommentsController } from './comments/comments.controller';
 		TransactionsController,
 		RolesController,
 		ProductsController,
-		CommentsController
+		CommentsController,
+		CategoriesController
 	],
 	providers: [
 		EntitiesService,
@@ -52,7 +55,8 @@ import { CommentsController } from './comments/comments.controller';
 		TransactionsService,
 		RolesService,
 		ProductsService,
-		CommentsService
+		CommentsService,
+		CategoriesService
 	]
 })
 export class EntitiesModule {}
