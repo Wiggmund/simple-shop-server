@@ -20,6 +20,8 @@ import { RolesService } from './roles/roles.service';
 import { RolesController } from './roles/roles.controller';
 import { ProductsService } from './products/products.service';
 import { ProductsController } from './products/products.controller';
+import { CommentsService } from './comments/comments.service';
+import { CommentsController } from './comments/comments.controller';
 
 @Module({
 	imports: [
@@ -40,7 +42,8 @@ import { ProductsController } from './products/products.controller';
 		VendorsController,
 		TransactionsController,
 		RolesController,
-		ProductsController
+		ProductsController,
+		CommentsController
 	],
 	providers: [
 		EntitiesService,
@@ -48,7 +51,8 @@ import { ProductsController } from './products/products.controller';
 		VendorsService,
 		TransactionsService,
 		RolesService,
-		ProductsService
+		ProductsService,
+		CommentsService
 	]
 })
 export class EntitiesModule {}
