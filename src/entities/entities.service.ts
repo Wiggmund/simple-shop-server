@@ -3,7 +3,7 @@ import { FindOptionsWhere, Repository } from 'typeorm';
 
 @Injectable()
 export class EntitiesService {
-	async checkForDublicates<D, T extends D, E>(
+	async checkForDublicates<D, T, E>(
 		dto: D,
 		uniqueFields: T, // Used just for getting keys
 		repository: Repository<E>,
@@ -12,14 +12,19 @@ export class EntitiesService {
 		const findOptions: Record<string, any>[] = [];
 
 		for (const key of Object.keys(uniqueFields)) {
-			const searchField = {};
-			searchField[key] = dto[key];
-			findOptions.push(searchField);
+			if (dto[key]) {
+				const searchField = {};
+				searchField[key] = dto[key];
+				findOptions.push(searchField);
+			}
 		}
 
-		const candidate = await repository.findOne({
-			where: findOptions
-		});
+		let candidate;
+		if (findOptions.length > 0) {
+			candidate = await repository.findOne({
+				where: findOptions
+			});
+		}
 
 		if (candidate) {
 			const dublicatedFields = getDublicatedFields(
