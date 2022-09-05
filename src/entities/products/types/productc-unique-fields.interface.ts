@@ -1,3 +1,3 @@
-export interface IProductUniqueFields {
-	product_name: string;
-}
+import { Product } from '../entity/product.entity';
+
+export type ProductUniqueFields = Pick<Product, 'product_name'>;

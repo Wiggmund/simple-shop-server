@@ -5,10 +5,13 @@ import { EntitiesService } from '../entities.service';
 import { Attribute } from './entity/attribute.entity';
 import { CreateAttributeDto } from './dto/create-attribute.dto';
 import { UpdateAttributeDto } from './dto/update-attribute.dto';
-import { IAttributeUniqueFields } from './types/attribute-unique-fields.interface';
+import { AttributeUniqueFields } from './types/attribute-unique-fields.interface';
 
 @Injectable()
 export class AttributesService {
+	private readonly attributeUniqueFieldsToCheck: Partial<AttributeUniqueFields>[] =
+		[{ attribute_name: '' }];
+
 	constructor(
 		@InjectRepository(Attribute)
 		private attributeRepository: Repository<Attribute>,
@@ -26,12 +29,7 @@ export class AttributesService {
 	async createAttribute(
 		attributeDto: CreateAttributeDto
 	): Promise<Attribute> {
-		await this.entitiesService.checkForDublicates<
-			CreateAttributeDto,
-			IAttributeUniqueFields,
-			Attribute
-		>(attributeDto, { attribute_name: '' }, this.attributeRepository);
-
+		await this.findAttributeDublicate<CreateAttributeDto>(attributeDto);
 		const newAttribute = this.attributeRepository.create(attributeDto);
 		return this.attributeRepository.save(newAttribute);
 	}
@@ -44,11 +42,7 @@ export class AttributesService {
 			[{ id }],
 			this.attributeRepository
 		);
-		await this.entitiesService.checkForDublicates<
-			UpdateAttributeDto,
-			IAttributeUniqueFields,
-			Attribute
-		>(attributeDto, { attribute_name: '' }, this.attributeRepository);
+		await this.findAttributeDublicate<CreateAttributeDto>(attributeDto);
 
 		await this.attributeRepository.update(id, attributeDto);
 		// Get updated data about attribute and return it
@@ -62,5 +56,15 @@ export class AttributesService {
 		);
 		await this.attributeRepository.delete(id);
 		return attribute;
+	}
+
+	private async findAttributeDublicate<D>(
+		attributeDto: D
+	): Promise<Attribute> {
+		return await this.entitiesService.checkForDublicates<D, Attribute>(
+			attributeDto,
+			this.attributeUniqueFieldsToCheck,
+			this.attributeRepository
+		);
 	}
 }

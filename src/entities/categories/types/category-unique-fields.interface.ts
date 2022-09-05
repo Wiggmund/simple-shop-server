@@ -1,3 +1,3 @@
-export interface ICategoryUniqueFields {
-	category_name: string;
-}
+import { Category } from '../entity/category.entity';
+
+export type CategoryUniqueFields = Pick<Category, 'category_name'>;

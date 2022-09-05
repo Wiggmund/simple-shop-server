@@ -1,3 +1,3 @@
-export interface IVendorUniqueFields {
-	company_name: string;
-}
+import { Vendor } from '../entity/vendor.entity';
+
+export type VendorUniqueFields = Pick<Vendor, 'company_name'>;

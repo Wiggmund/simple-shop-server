@@ -5,10 +5,13 @@ import { EntitiesService } from '../entities.service';
 import { Category } from './entity/category.entity';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
-import { ICategoryUniqueFields } from './types/category-unique-fields.interface';
+import { CategoryUniqueFields } from './types/category-unique-fields.interface';
 
 @Injectable()
 export class CategoriesService {
+	private readonly categoryUniqueFieldsToCheck: Partial<CategoryUniqueFields>[] =
+		[{ category_name: '' }];
+
 	constructor(
 		@InjectRepository(Category)
 		private categoryRepository: Repository<Category>,
@@ -24,12 +27,7 @@ export class CategoriesService {
 	}
 
 	async createCategory(categoryDto: CreateCategoryDto): Promise<Category> {
-		await this.entitiesService.checkForDublicates<
-			CreateCategoryDto,
-			ICategoryUniqueFields,
-			Category
-		>(categoryDto, { category_name: '' }, this.categoryRepository);
-
+		await this.findCategoryDublicate<CreateCategoryDto>(categoryDto);
 		const newCategory = this.categoryRepository.create(categoryDto);
 		return this.categoryRepository.save(newCategory);
 	}
@@ -42,11 +40,7 @@ export class CategoriesService {
 			[{ id }],
 			this.categoryRepository
 		);
-		await this.entitiesService.checkForDublicates<
-			UpdateCategoryDto,
-			ICategoryUniqueFields,
-			Category
-		>(categoryDto, { category_name: '' }, this.categoryRepository);
+		await this.findCategoryDublicate<UpdateCategoryDto>(categoryDto);
 
 		await this.categoryRepository.update(id, categoryDto);
 		// Get updated data about category and return it
@@ -60,5 +54,13 @@ export class CategoriesService {
 		);
 		await this.categoryRepository.delete(id);
 		return category;
+	}
+
+	private async findCategoryDublicate<D>(categoryDto: D): Promise<Category> {
+		return await this.entitiesService.checkForDublicates<D, Category>(
+			categoryDto,
+			this.categoryUniqueFieldsToCheck,
+			this.categoryRepository
+		);
 	}
 }

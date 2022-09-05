@@ -1,3 +1,3 @@
-export interface IRoleUniqueFields {
-	value: string;
-}
+import { Role } from '../entity/role.entity';
+
+export type RoleUniqueFields = Pick<Role, 'value'>;

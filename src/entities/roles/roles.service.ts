@@ -5,10 +5,14 @@ import { EntitiesService } from '../entities.service';
 import { Role } from './entity/role.entity';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
-import { IRoleUniqueFields } from './types/role-unique-fields.interface';
+import { RoleUniqueFields } from './types/role-unique-fields.interface';
 
 @Injectable()
 export class RolesService {
+	private readonly roleUniqueFieldsToCheck: Partial<RoleUniqueFields>[] = [
+		{ value: '' }
+	];
+
 	constructor(
 		@InjectRepository(Role) private roleRepository: Repository<Role>,
 		private entitiesService: EntitiesService
@@ -23,23 +27,14 @@ export class RolesService {
 	}
 
 	async createRole(roleDto: CreateRoleDto): Promise<Role> {
-		await this.entitiesService.checkForDublicates<
-			CreateRoleDto,
-			IRoleUniqueFields,
-			Role
-		>(roleDto, { value: '' }, this.roleRepository);
-
+		await this.findRoleDublicate<CreateRoleDto>(roleDto);
 		const newRole = this.roleRepository.create(roleDto);
 		return this.roleRepository.save(newRole);
 	}
 
 	async updateRole(roleDto: UpdateRoleDto, id: number): Promise<Role> {
 		await this.entitiesService.isExist<Role>([{ id }], this.roleRepository);
-		await this.entitiesService.checkForDublicates<
-			UpdateRoleDto,
-			IRoleUniqueFields,
-			Role
-		>(roleDto, { value: '' }, this.roleRepository);
+		await this.findRoleDublicate<UpdateRoleDto>(roleDto);
 
 		await this.roleRepository.update(id, roleDto);
 		// Get updated data about role and return it
@@ -53,5 +48,13 @@ export class RolesService {
 		);
 		await this.roleRepository.delete(id);
 		return role;
+	}
+
+	private async findRoleDublicate<D>(roleDto: D): Promise<Role> {
+		return await this.entitiesService.checkForDublicates<D, Role>(
+			roleDto,
+			this.roleUniqueFieldsToCheck,
+			this.roleRepository
+		);
 	}
 }

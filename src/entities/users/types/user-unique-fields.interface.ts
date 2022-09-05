@@ -1,6 +1,6 @@
-export interface IUserUniqueFields {
-	// firstName: string;
-	// lastName: string;
-	email: string;
-	phone: string;
-}
+import { User } from '../entity/user.entity';
+
+export type UserUniqueFields = Pick<
+	User,
+	'firstName' | 'lastName' | 'email' | 'phone'
+>;

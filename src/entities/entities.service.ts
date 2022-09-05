@@ -1,23 +1,30 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { FindOptionsWhere, Repository } from 'typeorm';
+import { User } from './users/entity/user.entity';
 
 @Injectable()
 export class EntitiesService {
-	async checkForDublicates<D, T, E>(
+	async checkForDublicates<D, E>(
 		dto: D,
-		uniqueFields: T, // Used just for getting keys
+		uniqueFieldsToCheck: FindOptionsWhere<E>[], // Used just for getting keys
 		repository: Repository<E>,
 		entityName = 'Entity'
 	): Promise<E> {
-		const findOptions: Record<string, any>[] = [];
+		const findOptions: FindOptionsWhere<E>[] = uniqueFieldsToCheck.map(
+			(item) => {
+				Object.keys(item).forEach((key) => {
+					if (!dto[key]) {
+						throw new HttpException(
+							`DTO and uniqueFieldsToCheck are not consistent. There is ${key} key in uniqueFieldsToCheck but not in DTO or it has falsy value`,
+							HttpStatus.INTERNAL_SERVER_ERROR
+						);
+					}
 
-		for (const key of Object.keys(uniqueFields)) {
-			if (dto[key]) {
-				const searchField = {};
-				searchField[key] = dto[key];
-				findOptions.push(searchField);
+					item[key] = dto[key];
+				});
+				return item;
 			}
-		}
+		);
 
 		let candidate;
 		if (findOptions.length > 0) {
@@ -48,11 +55,23 @@ export class EntitiesService {
 			const dublicates: string[] = [];
 
 			findOptionItems.forEach((item) => {
-				Object.keys(item).forEach((key) => {
+				const itemKeys = Object.keys(item);
+				const dublicatedProps = [];
+
+				for (const key of itemKeys) {
 					if (entity[key] === item[key]) {
-						dublicates.push(key);
+						dublicatedProps.push(`${key}=${entity[key]}`);
+					} else {
+						break;
 					}
-				});
+				}
+
+				if (
+					dublicatedProps.length > 0 &&
+					dublicatedProps.length === itemKeys.length
+				) {
+					dublicates.push(dublicatedProps.join(' + '));
+				}
 			});
 
 			return dublicates;

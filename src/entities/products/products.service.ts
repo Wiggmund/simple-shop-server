@@ -5,12 +5,16 @@ import { EntitiesService } from '../entities.service';
 import { Product } from './entity/product.entity';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import { IProductUniqueFields } from './types/productc-unique-fields.interface';
+import { ProductUniqueFields } from './types/productc-unique-fields.interface';
 
 @Injectable()
 export class ProductsService {
+	private readonly productUniqueFieldsToCheck: Partial<ProductUniqueFields>[] =
+		[{ product_name: '' }];
+
 	constructor(
-		@InjectRepository(Product) private productRepository: Repository<Product>,
+		@InjectRepository(Product)
+		private productRepository: Repository<Product>,
 		private entitiesService: EntitiesService
 	) {}
 
@@ -23,12 +27,7 @@ export class ProductsService {
 	}
 
 	async createProduct(productDto: CreateProductDto): Promise<Product> {
-		await this.entitiesService.checkForDublicates<
-			CreateProductDto,
-			IProductUniqueFields,
-			Product
-		>(productDto, { product_name: '' }, this.productRepository);
-
+		await this.findProductDublicate<CreateProductDto>(productDto);
 		const newProduct = this.productRepository.create(productDto);
 		return this.productRepository.save(newProduct);
 	}
@@ -41,11 +40,7 @@ export class ProductsService {
 			[{ id }],
 			this.productRepository
 		);
-		await this.entitiesService.checkForDublicates<
-			UpdateProductDto,
-			IProductUniqueFields,
-			Product
-		>(productDto, { product_name: '' }, this.productRepository);
+		await this.findProductDublicate<UpdateProductDto>(productDto);
 
 		await this.productRepository.update(id, productDto);
 		// Get updated data about product and return it
@@ -59,5 +54,13 @@ export class ProductsService {
 		);
 		await this.productRepository.delete(id);
 		return product;
+	}
+
+	private async findProductDublicate<D>(productDto: D): Promise<Product> {
+		return await this.entitiesService.checkForDublicates<D, Product>(
+			productDto,
+			this.productUniqueFieldsToCheck,
+			this.productRepository
+		);
 	}
 }

@@ -4,11 +4,14 @@ import { Vendor } from './entity/vendor.entity';
 import { Repository } from 'typeorm';
 import { CreateVendorDto } from './dto/create-vendor.dto';
 import { UpdateVendorDto } from './dto/update-vendor.dto';
-import { IVendorUniqueFields } from './types/vendor-unique-fields.interface';
+import { VendorUniqueFields } from './types/vendor-unique-fields.interface';
 import { EntitiesService } from '../entities.service';
 
 @Injectable()
 export class VendorsService {
+	private readonly vendorUniqueFieldsToCheck: Partial<VendorUniqueFields>[] =
+		[{ company_name: '' }];
+
 	constructor(
 		@InjectRepository(Vendor) private vendorRepository: Repository<Vendor>,
 		private entitiesService: EntitiesService
@@ -23,11 +26,7 @@ export class VendorsService {
 	}
 
 	async createVendor(vendorDto: CreateVendorDto): Promise<Vendor> {
-		await this.entitiesService.checkForDublicates<
-			CreateVendorDto,
-			IVendorUniqueFields,
-			Vendor
-		>(vendorDto, { company_name: '' }, this.vendorRepository);
+		await this.findVendorDublicate<CreateVendorDto>(vendorDto);
 
 		const newVendor = this.vendorRepository.create(vendorDto);
 		return this.vendorRepository.save(newVendor);
@@ -41,11 +40,7 @@ export class VendorsService {
 			[{ id }],
 			this.vendorRepository
 		);
-		await this.entitiesService.checkForDublicates<
-			UpdateVendorDto,
-			IVendorUniqueFields,
-			Vendor
-		>(vendorDto, { company_name: '' }, this.vendorRepository);
+		await this.findVendorDublicate<UpdateVendorDto>(vendorDto);
 
 		await this.vendorRepository.update(id, vendorDto);
 		// Get updated data about vendor and return it
@@ -59,5 +54,13 @@ export class VendorsService {
 		);
 		await this.vendorRepository.delete(id);
 		return vendor;
+	}
+
+	private async findVendorDublicate<D>(vendorDto: D): Promise<Vendor> {
+		return await this.entitiesService.checkForDublicates<D, Vendor>(
+			vendorDto,
+			this.vendorUniqueFieldsToCheck,
+			this.vendorRepository
+		);
 	}
 }
