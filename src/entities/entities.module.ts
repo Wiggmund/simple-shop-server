@@ -33,6 +33,8 @@ import * as uuid from 'uuid';
 import { Request } from 'express';
 import { PhotosController } from './photos/photos.controller';
 import { PhotosService } from './photos/photos.service';
+import { UserPhotosController } from './users/user-photos.controller';
+import { UserPhotosService } from './users/user-photos.service';
 
 @Module({
 	imports: [
@@ -68,6 +70,7 @@ import { PhotosService } from './photos/photos.service';
 	],
 	controllers: [
 		UsersController,
+		UserPhotosController,
 		VendorsController,
 		TransactionsController,
 		RolesController,
@@ -80,6 +83,7 @@ import { PhotosService } from './photos/photos.service';
 	providers: [
 		EntitiesService,
 		UsersService,
+		UserPhotosService,
 		VendorsService,
 		TransactionsService,
 		RolesService,

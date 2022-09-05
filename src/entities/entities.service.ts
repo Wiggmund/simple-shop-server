@@ -81,9 +81,13 @@ export class EntitiesService {
 	async isExist<E>(
 		findOptions: FindOptionsWhere<E>[],
 		repository: Repository<E>,
+		relations = {},
 		entityName = 'Entity'
 	): Promise<E> {
-		const candidate = await repository.findOne({ where: findOptions });
+		const candidate =
+			Object.keys(relations).length > 0
+				? await repository.findOne({ where: findOptions, relations })
+				: await repository.findOne({ where: findOptions });
 
 		if (!candidate) {
 			const findOptionItems = findOptions.map(
