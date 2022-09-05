@@ -35,6 +35,7 @@ import { PhotosController } from './photos/photos.controller';
 import { PhotosService } from './photos/photos.service';
 import { UserPhotosController } from './users/user-photos.controller';
 import { UserPhotosService } from './users/user-photos.service';
+import { PhotoFilesService } from './photos/photo-files.service';
 
 @Module({
 	imports: [
@@ -91,7 +92,8 @@ import { UserPhotosService } from './users/user-photos.service';
 		CommentsService,
 		CategoriesService,
 		AttributesService,
-		PhotosService
+		PhotosService,
+		PhotoFilesService
 	]
 })
 export class EntitiesModule {}

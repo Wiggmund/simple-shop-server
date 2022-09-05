@@ -45,7 +45,6 @@ export class UserPhotosService {
 		const doPhotoBelongsToUser = user.photos.some(
 			(photo) => Number(photo.id) === Number(photoId)
 		);
-		console.log('doPhotoBelongsToUser', doPhotoBelongsToUser);
 		if (!doPhotoBelongsToUser) {
 			throw new HttpException(
 				'User does not have photo with given id',

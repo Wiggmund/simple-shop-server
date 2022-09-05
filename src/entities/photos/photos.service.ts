@@ -5,12 +5,14 @@ import { Repository } from 'typeorm';
 import { Express } from 'express';
 import { CreatePhotoDto } from './dto/create-photo.dto';
 import { EntitiesService } from '../entities.service';
+import { PhotoFilesService } from './photo-files.service';
 
 @Injectable()
 export class PhotosService {
 	constructor(
 		@InjectRepository(Photo) private photoRepository: Repository<Photo>,
-		private entitiesService: EntitiesService
+		private entitiesService: EntitiesService,
+		private photoFilesService: PhotoFilesService
 	) {}
 
 	async getAllPhotos(): Promise<Photo[]> {
@@ -32,6 +34,7 @@ export class PhotosService {
 			[{ id }],
 			this.photoRepository
 		);
+		this.photoFilesService.deletePhotoFile(photo);
 		await this.photoRepository.delete(id);
 		return photo;
 	}
