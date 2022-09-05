@@ -1,7 +1,9 @@
 import {
 	Body,
 	Controller,
+	Delete,
 	Get,
+	Param,
 	Post,
 	UploadedFile,
 	UseInterceptors
@@ -19,6 +21,11 @@ export class PhotosController {
 		return this.photosService.getAllPhotos();
 	}
 
+	@Get(':id')
+	getPhotoById(@Param('id') id: number) {
+		return this.photosService.getPhotoById(id);
+	}
+
 	@Post('upload')
 	@UseInterceptors(FileInterceptor('file'))
 	uploadFile(@UploadedFile() file: Express.Multer.File, @Body() body: any) {
@@ -26,5 +33,10 @@ export class PhotosController {
 		console.log(res);
 		console.log('BODY', JSON.stringify(body, null, 4));
 		return res;
+	}
+
+	@Delete(':id')
+	deleteUser(@Param('id') id: number) {
+		return this.photosService.deletePhotoById(id);
 	}
 }
