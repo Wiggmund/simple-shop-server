@@ -26,6 +26,13 @@ import { CategoriesService } from './categories/categories.service';
 import { CategoriesController } from './categories/categories.controller';
 import { AttributesService } from './attributes/attributes.service';
 import { AttributesController } from './attributes/attributes.controller';
+import { MulterModule } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import * as fs from 'fs';
+import * as uuid from 'uuid';
+import { Request } from 'express';
+import { PhotosController } from './photos/photos.controller';
+import { PhotosService } from './photos/photos.service';
 
 @Module({
 	imports: [
@@ -39,7 +46,25 @@ import { AttributesController } from './attributes/attributes.controller';
 			Comment,
 			Role,
 			Photo
-		])
+		]),
+		MulterModule.register({
+			storage: diskStorage({
+				destination: function (req, file, cb) {
+					if (!fs.existsSync(process.env.PHOTOS_DEST)) {
+						fs.mkdirSync(process.env.PHOTOS_DEST);
+					}
+					cb(null, process.env.PHOTOS_DEST);
+				},
+				filename: function (
+					req: Request,
+					file: Express.Multer.File,
+					cb
+				) {
+					const type = file.mimetype.split('/')[1];
+					cb(null, `${uuid.v4()}.${type}`);
+				}
+			})
+		})
 	],
 	controllers: [
 		UsersController,
@@ -49,7 +74,8 @@ import { AttributesController } from './attributes/attributes.controller';
 		ProductsController,
 		CommentsController,
 		CategoriesController,
-		AttributesController
+		AttributesController,
+		PhotosController
 	],
 	providers: [
 		EntitiesService,
@@ -60,7 +86,8 @@ import { AttributesController } from './attributes/attributes.controller';
 		ProductsService,
 		CommentsService,
 		CategoriesService,
-		AttributesService
+		AttributesService,
+		PhotosService
 	]
 })
 export class EntitiesModule {}
