@@ -6,6 +6,8 @@ import { User } from './entity/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserUniqueFields } from './types/user-unique-fields.interface';
+import { Express } from 'express';
+import { PhotosService } from '../photos/photos.service';
 
 @Injectable()
 export class UsersService {
@@ -15,20 +17,30 @@ export class UsersService {
 	constructor(
 		@InjectRepository(User)
 		private userRepository: Repository<User>,
-		private entitiesService: EntitiesService
+		private entitiesService: EntitiesService,
+		private photosService: PhotosService
 	) {}
 
 	async getAllUsers(): Promise<User[]> {
-		return this.userRepository.find();
+		return this.userRepository.find({ relations: { photos: true } });
 	}
 
 	async getUserById(id: number): Promise<User> {
 		return this.userRepository.findOne({ where: { id } });
 	}
 
-	async createUser(userDto: CreateUserDto): Promise<User> {
+	async createUser(
+		userDto: CreateUserDto,
+		file: Express.Multer.File
+	): Promise<User> {
 		await this.findUserDublicate<CreateUserDto>(userDto);
+
 		const newUser = this.userRepository.create(userDto);
+		if (file) {
+			const avatar = await this.photosService.createPhoto(file);
+			newUser.photos = [avatar];
+		}
+
 		return this.userRepository.save(newUser);
 	}
 
