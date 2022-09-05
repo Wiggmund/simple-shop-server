@@ -11,6 +11,10 @@ export class PhotosService {
 		@InjectRepository(Photo) private photoRepository: Repository<Photo>
 	) {}
 
+	async getAllPhotos(): Promise<Photo[]> {
+		return this.photoRepository.find();
+	}
+
 	async createPhoto(file: Express.Multer.File): Promise<Photo> {
 		const photoDto = new CreatePhotoDto(file);
 		const photo = this.photoRepository.create(photoDto);
