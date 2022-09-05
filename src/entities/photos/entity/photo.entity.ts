@@ -14,6 +14,12 @@ export class Photo {
 	type: string;
 
 	@Column()
+	filename: string;
+
+	@Column()
+	destination: string;
+
+	@Column()
 	size: number;
 
 	@ManyToOne(() => User, (user) => user.photos)

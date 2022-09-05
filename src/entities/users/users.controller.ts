@@ -5,7 +5,9 @@ import {
 	Get,
 	Param,
 	Post,
-	Put, UploadedFile, UseInterceptors
+	Put,
+	UploadedFile,
+	UseInterceptors
 } from '@nestjs/common';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CreateUserDto } from './dto/create-user.dto';

@@ -7,7 +7,9 @@ import { CreatePhotoDto } from './dto/create-photo.dto';
 
 @Injectable()
 export class PhotosService {
-	constructor(@InjectRepository(Photo) private photoRepository: Repository<Photo>) {}
+	constructor(
+		@InjectRepository(Photo) private photoRepository: Repository<Photo>
+	) {}
 
 	async createPhoto(file: Express.Multer.File): Promise<Photo> {
 		const photoDto = new CreatePhotoDto(file);
