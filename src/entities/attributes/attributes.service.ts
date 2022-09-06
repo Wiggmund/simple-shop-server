@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { EntitiesService } from '../entities.service';
@@ -24,6 +24,21 @@ export class AttributesService {
 
 	async getAttributeById(id: number): Promise<Attribute> {
 		return this.attributeRepository.findOne({ where: { id } });
+	}
+
+	async getAttributeByName(attribute_name: string): Promise<Attribute> {
+		const candidate = await this.attributeRepository.findOne({
+			where: { attribute_name }
+		});
+
+		if (!candidate) {
+			throw new HttpException(
+				`Attribute with given attribute_name=${attribute_name} not found`,
+				HttpStatus.NOT_FOUND
+			);
+		}
+
+		return candidate;
 	}
 
 	async createAttribute(

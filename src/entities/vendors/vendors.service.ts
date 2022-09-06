@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Vendor } from './entity/vendor.entity';
 import { Repository } from 'typeorm';
@@ -23,6 +23,21 @@ export class VendorsService {
 
 	async getVendorById(id: number): Promise<Vendor> {
 		return this.vendorRepository.findOne({ where: { id } });
+	}
+
+	async getVendorByCompanyName(company_name: string): Promise<Vendor> {
+		const candidate = await this.vendorRepository.findOne({
+			where: { company_name }
+		});
+
+		if (!candidate) {
+			throw new HttpException(
+				'Vendor with given company_name not found',
+				HttpStatus.NOT_FOUND
+			);
+		}
+
+		return candidate;
 	}
 
 	async createVendor(vendorDto: CreateVendorDto): Promise<Vendor> {
