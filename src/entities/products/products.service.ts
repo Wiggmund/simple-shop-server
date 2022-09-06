@@ -42,7 +42,6 @@ export class ProductsService {
 		files: Array<Express.Multer.File>
 	): Promise<Product> {
 		await this.findProductDublicate<CreateProductDto>(productDto);
-
 		const category = await this.categoriesService.getCategoryByName(
 			productDto.category
 		);

@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { EntitiesModule } from './entities/entities.module';
+import { FileSystemModule } from './file-system/file-system.module';
 
 @Module({
 	imports: [
@@ -17,7 +18,8 @@ import { EntitiesModule } from './entities/entities.module';
 			synchronize: true,
 			autoLoadEntities: true
 		}),
-		EntitiesModule
+		EntitiesModule,
+		FileSystemModule
 	],
 	controllers: [],
 	providers: []

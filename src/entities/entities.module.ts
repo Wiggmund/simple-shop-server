@@ -36,9 +36,11 @@ import { PhotosService } from './photos/photos.service';
 import { UserPhotosController } from './users/user-photos.controller';
 import { UserPhotosService } from './users/user-photos.service';
 import { PhotoFilesService } from './photos/photo-files.service';
+import { FileSystemModule } from '../file-system/file-system.module';
 
 @Module({
 	imports: [
+		FileSystemModule,
 		TypeOrmModule.forFeature([
 			User,
 			Product,
