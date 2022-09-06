@@ -58,6 +58,7 @@ export class UsersService {
 			[{ id }],
 			this.userRepository
 		);
+		await this.photosService.deleteManyPhotosByCriteria([{ user }]);
 		await this.userRepository.delete(id);
 		return user;
 	}
