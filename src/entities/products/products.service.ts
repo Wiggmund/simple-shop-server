@@ -6,6 +6,9 @@ import { Product } from './entity/product.entity';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductUniqueFields } from './types/productc-unique-fields.interface';
+import { PhotosService } from '../photos/photos.service';
+import { Express } from 'express';
+import { Photo } from '../photos/entity/photo.entity';
 
 @Injectable()
 export class ProductsService {
@@ -15,7 +18,8 @@ export class ProductsService {
 	constructor(
 		@InjectRepository(Product)
 		private productRepository: Repository<Product>,
-		private entitiesService: EntitiesService
+		private entitiesService: EntitiesService,
+		private photosService: PhotosService
 	) {}
 
 	async getAllProducts(): Promise<Product[]> {
@@ -26,9 +30,19 @@ export class ProductsService {
 		return this.productRepository.findOne({ where: { id } });
 	}
 
-	async createProduct(productDto: CreateProductDto): Promise<Product> {
+	async createProduct(
+		productDto: CreateProductDto,
+		files: Array<Express.Multer.File>
+	): Promise<Product> {
 		await this.findProductDublicate<CreateProductDto>(productDto);
 		const newProduct = this.productRepository.create(productDto);
+
+		const productPhotos: Photo[] = [];
+		for (const file of files) {
+			productPhotos.push(await this.photosService.createPhoto(file));
+		}
+		newProduct.photos = productPhotos;
+
 		return this.productRepository.save(newProduct);
 	}
 
@@ -52,6 +66,7 @@ export class ProductsService {
 			[{ id }],
 			this.productRepository
 		);
+		await this.photosService.deleteManyPhotosByCriteria([{ product }]);
 		await this.productRepository.delete(id);
 		return product;
 	}
