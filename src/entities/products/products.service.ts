@@ -76,10 +76,12 @@ export class ProductsService {
 			});
 
 			return this.productRepository.save(newProduct);
-		} finally {
+		} catch (e) {
 			files.forEach((file) =>
 				this.fileSystemService.deletePhotoFile(file.filename)
 			);
+
+			throw e;
 		}
 	}
 
