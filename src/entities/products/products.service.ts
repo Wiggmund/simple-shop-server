@@ -13,6 +13,7 @@ import { CategoriesService } from '../categories/categories.service';
 import { VendorsService } from '../vendors/vendors.service';
 import { AttributesService } from '../attributes/attributes.service';
 import { Attribute } from '../attributes/entity/attribute.entity';
+import { FileSystemService } from '../../file-system/file-system.service';
 
 @Injectable()
 export class ProductsService {
@@ -26,7 +27,8 @@ export class ProductsService {
 		private photosService: PhotosService,
 		private categoriesService: CategoriesService,
 		private vendorsService: VendorsService,
-		private attributesService: AttributesService
+		private attributesService: AttributesService,
+		private fileSystemService: FileSystemService
 	) {}
 
 	async getAllProducts(): Promise<Product[]> {
@@ -41,36 +43,44 @@ export class ProductsService {
 		productDto: CreateProductDto,
 		files: Array<Express.Multer.File>
 	): Promise<Product> {
-		await this.findProductDublicate<CreateProductDto>(productDto);
-		const category = await this.categoriesService.getCategoryByName(
-			productDto.category
-		);
+		try {
+			await this.findProductDublicate<CreateProductDto>(productDto);
+			const category = await this.categoriesService.getCategoryByName(
+				productDto.category
+			);
 
-		const vendor = await this.vendorsService.getVendorByCompanyName(
-			productDto.vendor
-		);
+			const vendor = await this.vendorsService.getVendorByCompanyName(
+				productDto.vendor
+			);
 
-		const attributes: Attribute[] = [];
-		for (const attribute_name of productDto.attributes) {
-			attributes.push(
-				await this.attributesService.getAttributeByName(attribute_name)
+			const attributes: Attribute[] = [];
+			for (const attribute_name of productDto.attributes) {
+				attributes.push(
+					await this.attributesService.getAttributeByName(
+						attribute_name
+					)
+				);
+			}
+
+			const photos: Photo[] = [];
+			for (const file of files) {
+				photos.push(await this.photosService.createPhoto(file));
+			}
+
+			const newProduct = this.productRepository.create({
+				...productDto,
+				category,
+				vendor,
+				attributes,
+				photos
+			});
+
+			return this.productRepository.save(newProduct);
+		} finally {
+			files.forEach((file) =>
+				this.fileSystemService.deletePhotoFile(file.filename)
 			);
 		}
-
-		const photos: Photo[] = [];
-		for (const file of files) {
-			photos.push(await this.photosService.createPhoto(file));
-		}
-
-		const newProduct = this.productRepository.create({
-			...productDto,
-			category,
-			vendor,
-			attributes,
-			photos
-		});
-
-		return this.productRepository.save(newProduct);
 	}
 
 	async updateProduct(
