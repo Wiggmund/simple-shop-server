@@ -14,6 +14,7 @@ import { VendorsService } from '../vendors/vendors.service';
 import { AttributesService } from '../attributes/attributes.service';
 import { Attribute } from '../attributes/entity/attribute.entity';
 import { FileSystemService } from '../../file-system/file-system.service';
+import { ProductToAttributeService } from './product-to-attribute.service';
 
 @Injectable()
 export class ProductsService {
@@ -28,7 +29,8 @@ export class ProductsService {
 		private categoriesService: CategoriesService,
 		private vendorsService: VendorsService,
 		private attributesService: AttributesService,
-		private fileSystemService: FileSystemService
+		private fileSystemService: FileSystemService,
+		private productToAttributeService: ProductToAttributeService
 	) {}
 
 	async getAllProducts(): Promise<Product[]> {
@@ -53,29 +55,39 @@ export class ProductsService {
 				productDto.vendor
 			);
 
-			const attributes: Attribute[] = [];
-			for (const attribute_name of productDto.attributes) {
-				attributes.push(
-					await this.attributesService.getAttributeByName(
-						attribute_name
-					)
-				);
-			}
-
 			const photos: Photo[] = [];
 			for (const file of files) {
 				photos.push(await this.photosService.createPhoto(file));
 			}
 
-			const newProduct = this.productRepository.create({
+			const newProduct = await this.productRepository.create({
 				...productDto,
 				category,
 				vendor,
-				attributes,
 				photos
 			});
+			const product = await this.productRepository.save(newProduct);
 
-			return this.productRepository.save(newProduct);
+			const productToAttributes = [];
+			for (const attribute_name of Object.keys(productDto.attributes)) {
+				const attribute =
+					await this.attributesService.getAttributeByName(
+						attribute_name
+					);
+				const value = productDto.attributes[attribute_name];
+				await this.productToAttributeService.createAttributeRecord({
+					product: product,
+					attribute: attribute,
+					value
+				});
+				productToAttributes.push({ attribute, value });
+			}
+
+			// {attribute: obj, value: string}
+			console.log('productToAttributes', productToAttributes);
+			console.log('productDto.attributes', productDto.attributes);
+
+			return product;
 		} catch (e) {
 			files.forEach((file) =>
 				this.fileSystemService.deletePhotoFile(file.filename)
@@ -105,6 +117,9 @@ export class ProductsService {
 			[{ id }],
 			this.productRepository
 		);
+		await this.productToAttributeService.deleteManyByCreteria([
+			{ product }
+		]);
 		await this.photosService.deleteManyPhotosByCriteria([{ product }]);
 		await this.productRepository.delete(id);
 		return product;

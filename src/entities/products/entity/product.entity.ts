@@ -35,10 +35,6 @@ export class Product {
 	@Column({ default: true })
 	isActive: boolean;
 
-	@ManyToMany(() => Attribute, (attribute) => attribute.products)
-	@JoinTable()
-	attributes: Attribute[];
-
 	@ManyToOne(() => Category, (category) => category.products)
 	category: Category;
 

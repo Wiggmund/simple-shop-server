@@ -6,7 +6,7 @@ import {
 	OneToMany,
 	PrimaryGeneratedColumn
 } from 'typeorm';
-import { ProductToAttribute } from 'src/entities/products/entity/product-to-attribute.entity';
+import { ProductToAttribute } from '../../../entities/products/entity/product-to-attribute.entity';
 
 @Entity('attributes')
 export class Attribute {
@@ -21,7 +21,4 @@ export class Attribute {
 		(productToAttribute) => productToAttribute.attribute
 	)
 	productToAttributes: Attribute[];
-
-	@ManyToMany(() => Product, (product) => product.attributes)
-	products: Product[];
 }

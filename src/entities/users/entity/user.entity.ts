@@ -12,7 +12,7 @@ import {
 	OneToOne,
 	PrimaryGeneratedColumn
 } from 'typeorm';
-import { RefreshToken } from 'src/entities/refreshTokens/entity/refresh-token.entity';
+import { RefreshToken } from '../../../entities/refreshTokens/entity/refresh-token.entity';
 
 @Entity('users')
 export class User {

@@ -37,13 +37,18 @@ import { UserPhotosController } from './users/user-photos.controller';
 import { UserPhotosService } from './users/user-photos.service';
 import { PhotoFilesService } from './photos/photo-files.service';
 import { FileSystemModule } from '../file-system/file-system.module';
+import { ProductToAttribute } from './products/entity/product-to-attribute.entity';
+import { RefreshToken } from './refreshTokens/entity/refresh-token.entity';
+import { ProductToAttributeService } from './products/product-to-attribute.service';
 
 @Module({
 	imports: [
 		FileSystemModule,
 		TypeOrmModule.forFeature([
 			User,
+			RefreshToken,
 			Product,
+			ProductToAttribute,
 			Category,
 			Vendor,
 			Transaction,
@@ -91,6 +96,7 @@ import { FileSystemModule } from '../file-system/file-system.module';
 		TransactionsService,
 		RolesService,
 		ProductsService,
+		ProductToAttributeService,
 		CommentsService,
 		CategoriesService,
 		AttributesService,

@@ -1,3 +1,5 @@
+import { IAttributesData } from '../types/attributes-data.interface';
+
 export class CreateProductDto {
 	readonly product_name: string;
 	readonly description: string;
@@ -7,5 +9,5 @@ export class CreateProductDto {
 
 	readonly category: string;
 	readonly vendor: string;
-	readonly attributes: string[];
+	readonly attributes: IAttributesData;
 }

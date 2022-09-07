@@ -1,4 +1,4 @@
-import { User } from 'src/entities/users/entity/user.entity';
+import { User } from '../../../entities/users/entity/user.entity';
 import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('refresh_tokens')
