@@ -5,11 +5,14 @@ import { Transaction } from '../../transactions/entity/transaction.entity';
 import {
 	Column,
 	Entity,
+	JoinColumn,
 	JoinTable,
 	ManyToMany,
 	OneToMany,
+	OneToOne,
 	PrimaryGeneratedColumn
 } from 'typeorm';
+import { RefreshToken } from 'src/entities/refreshTokens/entity/refresh-token.entity';
 
 @Entity('users')
 export class User {
@@ -51,6 +54,10 @@ export class User {
 	activationLink: string;
 
 	// Relations
+
+	@OneToOne(() => RefreshToken, (refreshToken) => refreshToken.user)
+	@JoinColumn()
+	token: RefreshToken;
 
 	@OneToMany(() => Photo, (photo) => photo.user)
 	photos: Photo[];
