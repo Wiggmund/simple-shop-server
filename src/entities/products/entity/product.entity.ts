@@ -13,6 +13,7 @@ import {
 	OneToMany,
 	PrimaryGeneratedColumn
 } from 'typeorm';
+import { ProductToAttribute } from './product-to-attribute.entity';
 
 @Entity('products')
 export class Product {
@@ -52,4 +53,10 @@ export class Product {
 
 	@OneToMany(() => Transaction, (transaction) => transaction.product)
 	transactions: Transaction[];
+
+	@OneToMany(
+		() => ProductToAttribute,
+		(productToAttribute) => productToAttribute.product
+	)
+	productToAttributes: ProductToAttribute[];
 }
