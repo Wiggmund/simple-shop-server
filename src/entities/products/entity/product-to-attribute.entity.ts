@@ -7,6 +7,12 @@ export class ProductToAttribute {
 	@PrimaryGeneratedColumn()
 	id: number;
 
+	@Column()
+	productId: number;
+
+	@Column()
+	attributeId: number;
+
 	@ManyToOne(() => Product, (product) => product.productToAttributes)
 	product: Product;
 

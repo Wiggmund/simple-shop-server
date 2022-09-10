@@ -15,7 +15,6 @@ export class ProductToAttributeService {
 	async createProductToAttributeRecord(
 		dto: CreateProductToAttributeDto
 	): Promise<number> {
-		console.log('dto', dto);
 		const recordId = (
 			(
 				await this.productToAttributeRepository
@@ -26,18 +25,6 @@ export class ProductToAttributeService {
 					.execute()
 			).identifiers as ProductToAttributeId[]
 		)[0].id;
-
-		await this.productToAttributeRepository
-			.createQueryBuilder()
-			.relation(ProductToAttribute, 'product')
-			.of(recordId)
-			.set(dto.productId);
-
-		await this.productToAttributeRepository
-			.createQueryBuilder()
-			.relation(ProductToAttribute, 'attribute')
-			.of(recordId)
-			.set(dto.attributeId);
 
 		return recordId;
 	}

@@ -114,28 +114,7 @@ export class ProductsService {
 				);
 			}
 
-			// console.log(
-			// 	await this.productRepository
-			// 	.createQueryBuilder('product')
-			// 	.leftJoinAndSelect('product.category', 'category')
-			// 	.leftJoinAndSelect('product.vendor', 'vendor')
-			// 	.leftJoinAndSelect('product.photos', 'photo')
-			// 	.leftJoinAndSelect(
-			// 		'product.productToAttributes',
-			// 		'productToAttribute'
-			// 	)
-			// 	.where('product.id = :id', { id: productId })
-			// 	.getQuery()
-			// );
-
-			console.log(
-				await this.productRepository
-					.createQueryBuilder()
-					.relation(Product, 'productToAttributes')
-					.of(productId)
-					.loadMany()
-			);
-			const res = await this.productRepository
+			return await this.productRepository
 				.createQueryBuilder('product')
 				.leftJoinAndSelect('product.category', 'category')
 				.leftJoinAndSelect('product.vendor', 'vendor')
@@ -146,10 +125,6 @@ export class ProductsService {
 				)
 				.where('product.id = :id', { id: productId })
 				.getOne();
-
-			// console.log(res);
-
-			return res;
 		} catch (e) {
 			files.forEach((file) =>
 				this.fileSystemService.deletePhotoFile(file.filename)
