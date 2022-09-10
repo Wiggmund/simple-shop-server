@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { EntitiesService } from '../entities.service';
 import { Product } from './entity/product.entity';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -12,9 +12,11 @@ import { Photo } from '../photos/entity/photo.entity';
 import { CategoriesService } from '../categories/categories.service';
 import { VendorsService } from '../vendors/vendors.service';
 import { AttributesService } from '../attributes/attributes.service';
-import { Attribute } from '../attributes/entity/attribute.entity';
 import { FileSystemService } from '../../file-system/file-system.service';
 import { ProductToAttributeService } from './product-to-attribute.service';
+import { ProductCreationDataDto } from './dto/product-creation-data.dto';
+import { ProductIdentifier } from './types/product-identifier.interface';
+import { IAttributesIdsValues } from './types/attributes-ids-values.interface';
 
 @Injectable()
 export class ProductsService {
@@ -30,7 +32,8 @@ export class ProductsService {
 		private vendorsService: VendorsService,
 		private attributesService: AttributesService,
 		private fileSystemService: FileSystemService,
-		private productToAttributeService: ProductToAttributeService
+		private productToAttributeService: ProductToAttributeService,
+		private dataSource: DataSource
 	) {}
 
 	async getAllProducts(): Promise<Product[]> {
@@ -42,11 +45,12 @@ export class ProductsService {
 	}
 
 	async createProduct(
-		productDto: CreateProductDto,
+		productDto: ProductCreationDataDto,
 		files: Array<Express.Multer.File>
 	): Promise<Product> {
 		try {
 			await this.findProductDublicate<CreateProductDto>(productDto);
+
 			const category = await this.categoriesService.getCategoryByName(
 				productDto.category
 			);
@@ -55,39 +59,97 @@ export class ProductsService {
 				productDto.vendor
 			);
 
+			const attrs: IAttributesIdsValues[] = [];
+			for (const attribute_name of Object.keys(productDto.attributes)) {
+				const attributeId = (
+					await this.attributesService.getAttributeByName(
+						attribute_name
+					)
+				).id;
+				const value = productDto.attributes[attribute_name];
+				attrs.push({ attributeId, value });
+			}
+
 			const photos: Photo[] = [];
 			for (const file of files) {
 				photos.push(await this.photosService.createPhoto(file));
 			}
 
-			const newProduct = await this.productRepository.create({
-				...productDto,
-				category,
-				vendor,
-				photos
-			});
-			const product = await this.productRepository.save(newProduct);
+			const productId = (
+				(
+					await this.productRepository
+						.createQueryBuilder()
+						.insert()
+						.into(Product)
+						.values(new CreateProductDto(productDto))
+						.execute()
+				).identifiers as ProductIdentifier[]
+			)[0].id;
 
-			const productToAttributes = [];
-			for (const attribute_name of Object.keys(productDto.attributes)) {
-				const attribute =
-					await this.attributesService.getAttributeByName(
-						attribute_name
-					);
-				const value = productDto.attributes[attribute_name];
-				await this.productToAttributeService.createAttributeRecord({
-					product: product,
-					attribute: attribute,
-					value
-				});
-				productToAttributes.push({ attribute, value });
+			await this.productRepository
+				.createQueryBuilder()
+				.relation(Product, 'category')
+				.of(productId)
+				.set(category);
+
+			await this.productRepository
+				.createQueryBuilder()
+				.relation(Product, 'vendor')
+				.of(productId)
+				.set(vendor);
+
+			await this.productRepository
+				.createQueryBuilder()
+				.relation(Product, 'photos')
+				.of(productId)
+				.add(photos);
+
+			for (const { attributeId, value } of attrs) {
+				await this.productToAttributeService.createProductToAttributeRecord(
+					{
+						attributeId,
+						productId,
+						value
+					}
+				);
 			}
 
-			// {attribute: obj, value: string}
-			console.log('productToAttributes', productToAttributes);
-			console.log('productDto.attributes', productDto.attributes);
+			// console.log(
+			// 	await this.productRepository
+			// 	.createQueryBuilder('product')
+			// 	.leftJoinAndSelect('product.category', 'category')
+			// 	.leftJoinAndSelect('product.vendor', 'vendor')
+			// 	.leftJoinAndSelect('product.photos', 'photo')
+			// 	.leftJoinAndSelect(
+			// 		'product.productToAttributes',
+			// 		'productToAttribute'
+			// 	)
+			// 	.where('product.id = :id', { id: productId })
+			// 	.getQuery()
+			// );
 
-			return product;
+			console.log(
+				await this.productRepository
+					.createQueryBuilder()
+					.relation(Product, 'productToAttributes')
+					.of(productId)
+					.loadMany()
+			);
+			const res = await this.productRepository
+				.createQueryBuilder('product')
+				.leftJoinAndSelect('product.category', 'category')
+				.leftJoinAndSelect('product.vendor', 'vendor')
+				.leftJoinAndSelect('product.photos', 'photo')
+				.leftJoinAndSelect(
+					'product.productToAttributes',
+					'productToAttribute'
+				)
+				.where('product.id = :id', { id: productId })
+				.getOne();
+
+			// console.log(res);
+
+			return res;
 		} catch (e) {
 			files.forEach((file) =>
 				this.fileSystemService.deletePhotoFile(file.filename)

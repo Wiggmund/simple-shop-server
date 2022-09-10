@@ -1,4 +1,4 @@
-import { IAttributesData } from '../types/attributes-data.interface';
+import { ProductCreationDataDto } from './product-creation-data.dto';
 
 export class CreateProductDto {
 	readonly product_name: string;
@@ -7,7 +7,11 @@ export class CreateProductDto {
 	readonly quantity: number;
 	readonly isActive: boolean;
 
-	readonly category: string;
-	readonly vendor: string;
-	readonly attributes: IAttributesData;
+	constructor(dto: ProductCreationDataDto) {
+		this.product_name = dto.product_name;
+		this.description = dto.description;
+		this.price = dto.price;
+		this.quantity = dto.quantity;
+		this.isActive = dto.isActive;
+	}
 }

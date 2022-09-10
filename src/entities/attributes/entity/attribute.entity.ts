@@ -1,11 +1,4 @@
-import { Product } from '../../products/entity/product.entity';
-import {
-	Column,
-	Entity,
-	ManyToMany,
-	OneToMany,
-	PrimaryGeneratedColumn
-} from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { ProductToAttribute } from '../../../entities/products/entity/product-to-attribute.entity';
 
 @Entity('attributes')
@@ -20,5 +13,5 @@ export class Attribute {
 		() => ProductToAttribute,
 		(productToAttribute) => productToAttribute.attribute
 	)
-	productToAttributes: Attribute[];
+	productToAttributes: ProductToAttribute[];
 }

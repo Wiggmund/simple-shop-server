@@ -1,4 +1,3 @@
-import { Attribute } from '../../attributes/entity/attribute.entity';
 import { Category } from '../../categories/entity/category.entity';
 import { Comment } from '../../comments/entity/comment.entity';
 import { Photo } from '../../photos/entity/photo.entity';
@@ -7,8 +6,6 @@ import { Vendor } from '../../vendors/entity/vendor.entity';
 import {
 	Column,
 	Entity,
-	JoinTable,
-	ManyToMany,
 	ManyToOne,
 	OneToMany,
 	PrimaryGeneratedColumn
