@@ -45,7 +45,14 @@ export class UsersService {
 	}
 
 	async updateUser(userDto: UpdateUserDto, id: number): Promise<User> {
-		await this.entitiesService.isExist<User>([{ id }], this.userRepository);
+		const user = await this.entitiesService.isExist<User>(
+			[{ id }],
+			this.userRepository
+		);
+		console.log(userDto);
+		if (Object.keys(userDto).length === 0) {
+			return user;
+		}
 		await this.findUserDublicate<UpdateUserDto>(userDto);
 
 		await this.userRepository.update(id, userDto);

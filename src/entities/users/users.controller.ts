@@ -14,6 +14,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UsersService } from './users.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Express } from 'express';
+import { DtoValidationPipe } from '../../common/pipes/dto-validation.pipe';
 
 @Controller('users')
 export class UsersController {
@@ -33,13 +34,16 @@ export class UsersController {
 	@UseInterceptors(FileInterceptor('avatar'))
 	createUser(
 		@UploadedFile() file: Express.Multer.File,
-		@Body() userDto: CreateUserDto
+		@Body(DtoValidationPipe) userDto: CreateUserDto
 	) {
 		return this.usersService.createUser(userDto, file);
 	}
 
 	@Put(':id')
-	updateUser(@Body() userDto: UpdateUserDto, @Param('id') id: number) {
+	updateUser(
+		@Body(DtoValidationPipe) userDto: UpdateUserDto,
+		@Param('id') id: number
+	) {
 		return this.usersService.updateUser(userDto, id);
 	}
 
