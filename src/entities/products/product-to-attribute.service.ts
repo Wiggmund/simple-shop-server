@@ -14,7 +14,7 @@ export class ProductToAttributeService {
 
 	async createProductToAttributeRecord(
 		dto: CreateProductToAttributeDto
-	): Promise<number> {
+	): Promise<ProductToAttributeId> {
 		const recordId = (
 			(
 				await this.productToAttributeRepository
@@ -24,7 +24,7 @@ export class ProductToAttributeService {
 					.values(dto)
 					.execute()
 			).identifiers as ProductToAttributeId[]
-		)[0].id;
+		)[0];
 
 		return recordId;
 	}
