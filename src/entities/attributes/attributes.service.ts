@@ -76,7 +76,7 @@ export class AttributesService {
 	private async findAttributeDublicate<D>(
 		attributeDto: D
 	): Promise<Attribute> {
-		return await this.entitiesService.checkForDublicates<D, Attribute>(
+		return await this.entitiesService.checkForDublicates2<D, Attribute>(
 			attributeDto,
 			this.attributeUniqueFieldsToCheck,
 			this.attributeRepository

@@ -5,6 +5,7 @@ import { Transaction } from '../../transactions/entity/transaction.entity';
 import {
 	Column,
 	Entity,
+	Index,
 	JoinColumn,
 	JoinTable,
 	ManyToMany,
@@ -14,6 +15,7 @@ import {
 } from 'typeorm';
 import { RefreshToken } from '../../../entities/refreshTokens/entity/refresh-token.entity';
 
+@Index(['firstName', 'lastName'], { unique: true })
 @Entity('users')
 export class User {
 	@PrimaryGeneratedColumn()

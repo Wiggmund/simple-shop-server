@@ -72,7 +72,7 @@ export class VendorsService {
 	}
 
 	private async findVendorDublicate<D>(vendorDto: D): Promise<Vendor> {
-		return await this.entitiesService.checkForDublicates<D, Vendor>(
+		return await this.entitiesService.checkForDublicates2<D, Vendor>(
 			vendorDto,
 			this.vendorUniqueFieldsToCheck,
 			this.vendorRepository

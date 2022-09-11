@@ -163,7 +163,7 @@ export class ProductsService {
 	}
 
 	private async findProductDublicate<D>(productDto: D): Promise<Product> {
-		return await this.entitiesService.checkForDublicates<D, Product>(
+		return await this.entitiesService.checkForDublicates2<D, Product>(
 			productDto,
 			this.productUniqueFieldsToCheck,
 			this.productRepository

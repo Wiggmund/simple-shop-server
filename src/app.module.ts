@@ -17,7 +17,9 @@ import { FileSystemModule } from './file-system/file-system.module';
 			database: process.env.POSTGRES_DB,
 			entities: [],
 			synchronize: true,
-			autoLoadEntities: true
+			autoLoadEntities: true,
+			logging: true,
+			logger: 'advanced-console'
 		}),
 		EntitiesModule,
 		FileSystemModule

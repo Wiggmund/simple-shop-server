@@ -72,7 +72,7 @@ export class CategoriesService {
 	}
 
 	private async findCategoryDublicate<D>(categoryDto: D): Promise<Category> {
-		return await this.entitiesService.checkForDublicates<D, Category>(
+		return await this.entitiesService.checkForDublicates2<D, Category>(
 			categoryDto,
 			this.categoryUniqueFieldsToCheck,
 			this.categoryRepository

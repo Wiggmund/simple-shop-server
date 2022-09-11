@@ -51,7 +51,7 @@ export class RolesService {
 	}
 
 	private async findRoleDublicate<D>(roleDto: D): Promise<Role> {
-		return await this.entitiesService.checkForDublicates<D, Role>(
+		return await this.entitiesService.checkForDublicates2<D, Role>(
 			roleDto,
 			this.roleUniqueFieldsToCheck,
 			this.roleRepository
