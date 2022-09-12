@@ -9,18 +9,23 @@ import {
 } from 'typeorm';
 
 import { User } from './entity/user.entity';
+import { Photo } from '../photos/entity/photo.entity';
+import { Transaction } from '../transactions/entity/transaction.entity';
+import { Comment } from '../comments/entity/comment.entity';
 
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
 import { UserUniqueFields } from './types/user-unique-fields.interface';
-import { UserId } from './types/user-id.interface';
+import { UserId, UserIdType } from './types/user-id.interface';
 import { TransactionKit } from '../../common/types/transaction-kit.interface';
+import { IUserRelatedEntitiesIds } from './types/user-related-entities-ids.interface';
 
 import { EntitiesService } from '../entities.service';
 import { PhotosService } from '../photos/photos.service';
 import { FileSystemService } from '../../file-system/file-system.service';
 import { CommentsService } from '../comments/comments.service';
+import { TransactionsService } from '../transactions/transactions.service';
 
 @Injectable()
 export class UsersService {
@@ -38,6 +43,7 @@ export class UsersService {
 		private photosService: PhotosService,
 		private fileSystemService: FileSystemService,
 		private commentsService: CommentsService,
+		private transactionsService: TransactionsService,
 		private dataSource: DataSource
 	) {}
 
@@ -179,9 +185,21 @@ export class UsersService {
 				[{ id }],
 				repository
 			);
+			const { photosIds, commentsIds, transactionIds } =
+				await this.getRelatedEntitiesIds(id, repository);
 
-			await this.photosService.deleteManyPhotos('user', id, manager);
-			await this.commentsService.unbindEntities('user', id, manager);
+			await this.photosService.deleteManyPhotosByIds(photosIds, manager);
+
+			await this.commentsService.unbindEntities(
+				'user',
+				commentsIds,
+				manager
+			);
+			await this.transactionsService.unbindEntities(
+				'user',
+				transactionIds,
+				manager
+			);
 
 			await repository
 				.createQueryBuilder()
@@ -240,5 +258,36 @@ export class UsersService {
 			: this.userRepository;
 
 		return repository;
+	}
+
+	private async getRelatedEntitiesIds(
+		userId: UserIdType,
+		repository: Repository<User>
+	): Promise<IUserRelatedEntitiesIds> {
+		const photosIds = (
+			await repository
+				.createQueryBuilder()
+				.relation(User, 'photos')
+				.of(userId)
+				.loadMany<Photo>()
+		).map((photo) => photo.id);
+
+		const commentsIds = (
+			await repository
+				.createQueryBuilder()
+				.relation(User, 'comments')
+				.of(userId)
+				.loadMany<Comment>()
+		).map((comment) => comment.id);
+
+		const transactionIds = (
+			await repository
+				.createQueryBuilder()
+				.relation(User, 'transactions')
+				.of(userId)
+				.loadMany<Transaction>()
+		).map((transaction) => transaction.id);
+
+		return { photosIds, commentsIds, transactionIds };
 	}
 }

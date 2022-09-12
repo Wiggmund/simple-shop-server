@@ -10,9 +10,13 @@ import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 
 import { TransactionKit } from '../../common/types/transaction-kit.interface';
-import { TransactionId } from './types/transaction-id.interface';
+import {
+	TransactionId,
+	TransactionIdType
+} from './types/transaction-id.interface';
 import { UserIdType } from '../users/types/user-id.interface';
 import { ProductIdType } from '../products/types/product-id.interface';
+import { TransactionRelatedEntities } from './types/transaction-related-entities.interface';
 
 import { EntitiesService } from '../entities.service';
 
@@ -166,6 +170,46 @@ export class TransactionsService {
 		} finally {
 			await queryRunner.release();
 		}
+	}
+
+	async unbindEntities(
+		relatedEntity: TransactionRelatedEntities,
+		ids: TransactionIdType[],
+		manager: EntityManager | null = null
+	): Promise<void> {
+		const repository = this.getRepository(manager);
+
+		switch (relatedEntity) {
+			case 'product':
+				await this.unbindProducts(ids, repository);
+				break;
+
+			case 'user':
+				await this.unbindUsers(ids, repository);
+				break;
+		}
+	}
+
+	private async unbindProducts(
+		ids: TransactionIdType[],
+		repository: Repository<Transaction>
+	): Promise<void> {
+		await repository
+			.createQueryBuilder()
+			.relation(Transaction, 'product')
+			.of(ids)
+			.set(null);
+	}
+
+	private async unbindUsers(
+		ids: UserIdType[],
+		repository: Repository<Transaction>
+	): Promise<void> {
+		await repository
+			.createQueryBuilder()
+			.relation(Transaction, 'user')
+			.of(ids)
+			.set(null);
 	}
 
 	private getQueryRunnerAndRepository(): TransactionKit<Transaction> {

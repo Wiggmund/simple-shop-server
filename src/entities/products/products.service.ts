@@ -9,6 +9,9 @@ import {
 } from 'typeorm';
 
 import { Product } from './entity/product.entity';
+import { Photo } from '../photos/entity/photo.entity';
+import { Comment } from '../comments/entity/comment.entity';
+import { Transaction } from '../transactions/entity/transaction.entity';
 
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -23,7 +26,7 @@ import { FileSystemService } from '../../file-system/file-system.service';
 import { ProductToAttributeService } from './product-to-attribute.service';
 import { CommentsService } from '../comments/comments.service';
 
-import { ProductId } from './types/product-id.interface';
+import { ProductId, ProductIdType } from './types/product-id.interface';
 import { IAttributeIdAndValue } from '../attributes/types/attribute-id-and-value.interface';
 import { TransactionKit } from '../../common/types/transaction-kit.interface';
 import { PhotoIdType } from '../photos/types/photo-id.interface';
@@ -31,6 +34,9 @@ import {
 	ProductUniqueConditions,
 	ProductUniqueFields
 } from './types/product-unique-conditions.interface';
+import { IProductRelatedEntitiesIds } from './types/product-related-entities-ids.interface';
+
+import { TransactionsService } from '../transactions/transactions.service';
 
 @Injectable()
 export class ProductsService {
@@ -53,6 +59,7 @@ export class ProductsService {
 		private fileSystemService: FileSystemService,
 		private productToAttributeService: ProductToAttributeService,
 		private commentsService: CommentsService,
+		private transactionsService: TransactionsService,
 		private dataSource: DataSource
 	) {}
 
@@ -275,14 +282,26 @@ export class ProductsService {
 				[{ id }],
 				repository
 			);
+			const { photosIds, commentsIds, transactionIds } =
+				await this.getRelatedEntitiesIds(id, repository);
+
+			await this.photosService.deleteManyPhotosByIds(photosIds, manager);
 
 			await this.productToAttributeService.deleteManyByProductId(
 				id,
 				manager
 			);
 
-			await this.photosService.deleteManyPhotos('product', id, manager);
-			await this.commentsService.unbindEntities('product', id, manager);
+			await this.commentsService.unbindEntities(
+				'product',
+				commentsIds,
+				manager
+			);
+			await this.transactionsService.unbindEntities(
+				'product',
+				transactionIds,
+				manager
+			);
 
 			await repository
 				.createQueryBuilder()
@@ -341,5 +360,36 @@ export class ProductsService {
 		const repository = manager.getRepository(Product);
 
 		return { queryRunner, repository, manager };
+	}
+
+	private async getRelatedEntitiesIds(
+		productId: ProductIdType,
+		repository: Repository<Product>
+	): Promise<IProductRelatedEntitiesIds> {
+		const photosIds = (
+			await repository
+				.createQueryBuilder()
+				.relation(Product, 'photos')
+				.of(productId)
+				.loadMany<Photo>()
+		).map((photo) => photo.id);
+
+		const commentsIds = (
+			await repository
+				.createQueryBuilder()
+				.relation(Product, 'comments')
+				.of(productId)
+				.loadMany<Comment>()
+		).map((comment) => comment.id);
+
+		const transactionIds = (
+			await repository
+				.createQueryBuilder()
+				.relation(Product, 'transactions')
+				.of(productId)
+				.loadMany<Transaction>()
+		).map((transaction) => transaction.id);
+
+		return { photosIds, commentsIds, transactionIds };
 	}
 }

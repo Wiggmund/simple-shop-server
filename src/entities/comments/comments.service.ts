@@ -15,7 +15,6 @@ import { EntitiesService } from '../entities.service';
 import { TransactionKit } from '../../common/types/transaction-kit.interface';
 import { CommentId, CommentIdType } from './types/comment-id.interface';
 import { CommentRelatedEntities } from './types/comment-related-entities.interface';
-import { ProductIdType } from '../products/types/product-id.interface';
 import { UserIdType } from '../users/types/user-id.interface';
 
 @Injectable()
@@ -184,40 +183,23 @@ export class CommentsService {
 
 	async unbindEntities(
 		relatedEntity: CommentRelatedEntities,
-		id: ProductIdType | UserIdType,
+		ids: CommentIdType[],
 		manager: EntityManager | null = null
 	): Promise<void> {
 		const repository = this.getRepository(manager);
 
-		let ids: CommentIdType[];
 		switch (relatedEntity) {
 			case 'product':
-				ids = (
-					await repository
-						.createQueryBuilder('comment')
-						.select('comment.id')
-						.where('comment.productId = :id', { id })
-						.getMany()
-				).map((comment) => comment.id);
-
-				await this.unbindProductsById(ids, repository);
+				await this.unbindProducts(ids, repository);
 				break;
 
 			case 'user':
-				ids = (
-					await repository
-						.createQueryBuilder('comment')
-						.select('comment.id')
-						.where('comment.userId = :id', { id })
-						.getMany()
-				).map((comment) => comment.id);
-
-				await this.unbindUsersById(ids, repository);
+				await this.unbindUsers(ids, repository);
 				break;
 		}
 	}
 
-	private async unbindProductsById(
+	private async unbindProducts(
 		ids: CommentIdType[],
 		repository: Repository<Comment>
 	): Promise<void> {
@@ -228,7 +210,7 @@ export class CommentsService {
 			.set(null);
 	}
 
-	private async unbindUsersById(
+	private async unbindUsers(
 		ids: UserIdType[],
 		repository: Repository<Comment>
 	): Promise<void> {
