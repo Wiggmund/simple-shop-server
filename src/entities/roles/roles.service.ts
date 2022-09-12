@@ -15,7 +15,7 @@ import { UpdateRoleDto } from './dto/update-role.dto';
 import { EntitiesService } from '../entities.service';
 
 import { RoleUniqueFields } from './types/role-unique-fields.interface';
-import { TransactionKit } from 'src/common/types/transaction-kit.interface';
+import { TransactionKit } from '../../common/types/transaction-kit.interface';
 import { RoleId } from './types/role-id.interface';
 
 @Injectable()

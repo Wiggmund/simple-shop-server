@@ -13,7 +13,7 @@ import { CreateVendorDto } from './dto/create-vendor.dto';
 import { UpdateVendorDto } from './dto/update-vendor.dto';
 
 import { VendorUniqueFields } from './types/vendor-unique-fields.interface';
-import { TransactionKit } from 'src/common/types/transaction-kit.interface';
+import { TransactionKit } from '../../common/types/transaction-kit.interface';
 import { IVendorID } from './types/vendor-id.interface';
 
 import { EntitiesService } from '../entities.service';

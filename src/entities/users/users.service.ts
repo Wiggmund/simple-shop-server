@@ -15,7 +15,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 
 import { UserUniqueFields } from './types/user-unique-fields.interface';
 import { IUserID } from './types/user-id.interface';
-import { TransactionKit } from 'src/common/types/transaction-kit.interface';
+import { TransactionKit } from '../../common/types/transaction-kit.interface';
 
 import { EntitiesService } from '../entities.service';
 import { PhotosService } from '../photos/photos.service';
