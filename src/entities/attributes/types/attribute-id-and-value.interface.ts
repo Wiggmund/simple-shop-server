@@ -1,4 +1,4 @@
-export interface IAttributesIdsValues {
+export interface IAttributeIdAndValue {
 	attributeId: number;
 	value: string;
 }

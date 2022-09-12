@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { EntitiesService } from '../entities.service';
 import { Attribute } from './entity/attribute.entity';
 import { CreateAttributeDto } from './dto/create-attribute.dto';
@@ -26,8 +26,12 @@ export class AttributesService {
 		return this.attributeRepository.findOne({ where: { id } });
 	}
 
-	async getAttributeByName(attribute_name: string): Promise<Attribute> {
-		const candidate = await this.attributeRepository.findOne({
+	async getAttributeByName(
+		attribute_name: string,
+		manager: EntityManager | null = null
+	): Promise<Attribute> {
+		const repository = this.getRepository(manager);
+		const candidate = await repository.findOne({
 			where: { attribute_name }
 		});
 
@@ -81,5 +85,15 @@ export class AttributesService {
 			this.attributeUniqueFieldsToCheck,
 			this.attributeRepository
 		);
+	}
+
+	private getRepository(
+		manager: EntityManager | null = null
+	): Repository<Attribute> {
+		const repository = manager
+			? manager.getRepository(Attribute)
+			: this.attributeRepository;
+
+		return repository;
 	}
 }

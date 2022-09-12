@@ -10,4 +10,8 @@ export class PhotoFilesService {
 		const fullFileName = `${photo.filename}.${photo.type}`;
 		this.fileSystemService.deletePhotoFile(fullFileName);
 	}
+
+	deleteManyPhotoFiles(photos: Photo[]): void {
+		photos.forEach((photo) => this.deletePhotoFile(photo));
+	}
 }

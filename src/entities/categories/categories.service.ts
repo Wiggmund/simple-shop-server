@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { EntitiesService } from '../entities.service';
 import { Category } from './entity/category.entity';
 import { CreateCategoryDto } from './dto/create-category.dto';
@@ -26,8 +26,13 @@ export class CategoriesService {
 		return this.categoryRepository.findOne({ where: { id } });
 	}
 
-	async getCategoryByName(category_name: string): Promise<Category> {
-		const candidate = await this.categoryRepository.findOne({
+	async getCategoryByName(
+		category_name: string,
+		manager: EntityManager | null = null
+	): Promise<Category> {
+		const repository = this.getRepository(manager);
+
+		const candidate = await repository.findOne({
 			where: { category_name }
 		});
 
@@ -77,5 +82,15 @@ export class CategoriesService {
 			this.categoryUniqueFieldsToCheck,
 			this.categoryRepository
 		);
+	}
+
+	private getRepository(
+		manager: EntityManager | null = null
+	): Repository<Category> {
+		const repository = manager
+			? manager.getRepository(Category)
+			: this.categoryRepository;
+
+		return repository;
 	}
 }

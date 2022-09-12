@@ -7,6 +7,7 @@ import { CreatePhotoDto } from './dto/create-photo.dto';
 import { EntitiesService } from '../entities.service';
 import { PhotoFilesService } from './photo-files.service';
 import { FindOptionsWhere } from 'typeorm';
+import { PhotoRelatedEntities } from './types/photo-related-entities.interface';
 
 @Injectable()
 export class PhotosService {
@@ -61,6 +62,63 @@ export class PhotosService {
 		);
 
 		return repository.remove([...photos]);
+	}
+
+	async deleteManyPhotos(
+		relatedEntity: PhotoRelatedEntities,
+		id: number,
+		manager: EntityManager | null = null
+	): Promise<void> {
+		const repository = this.getRepository(manager);
+
+		switch (relatedEntity) {
+			case 'product':
+				await this.deleteManyPhotosByProductId(id, repository);
+				break;
+			case 'user':
+				await this.deleteManyPhotosByUserId(id, repository);
+				break;
+		}
+	}
+
+	private async deleteManyPhotosByProductId(
+		productId: number,
+		repository: Repository<Photo>
+	): Promise<void> {
+		const photos = await repository
+			.createQueryBuilder('photo')
+			.select(['photo.filename', 'photo.type'])
+			.where('photo.productId = :productId', { productId })
+			.getMany();
+
+		this.photoFilesService.deleteManyPhotoFiles(photos);
+
+		await repository
+			.createQueryBuilder()
+			.delete()
+			.from(Photo)
+			.where('productId = :productId', { productId })
+			.execute();
+	}
+
+	private async deleteManyPhotosByUserId(
+		userId: number,
+		repository: Repository<Photo>
+	): Promise<void> {
+		const photos = await repository
+			.createQueryBuilder('photo')
+			.select(['photo.filename', 'photo.type'])
+			.where('photo.userId = :userId', { userId })
+			.getMany();
+
+		this.photoFilesService.deleteManyPhotoFiles(photos);
+
+		await repository
+			.createQueryBuilder()
+			.delete()
+			.from(Photo)
+			.where('userId = :userId', { userId })
+			.execute();
 	}
 
 	private getRepository(

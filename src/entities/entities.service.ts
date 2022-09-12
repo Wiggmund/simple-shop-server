@@ -51,6 +51,11 @@ export class EntitiesService {
 		return candidate;
 	}
 
+	doDtoHaveUniqueFields<D>(dto: D, uniqueFields: string[]): boolean {
+		const dtoKeys = Object.keys(dto);
+		return dtoKeys.some((key) => uniqueFields.includes(key));
+	}
+
 	async checkForDublicates<E>(
 		repository: Repository<E>,
 		findOptions: FindOptionsWhere<E>[],
@@ -70,7 +75,7 @@ export class EntitiesService {
 				`${entityName} with given [${dublicatedFields.join(
 					', '
 				)}] fields already exists`,
-				HttpStatus.BAD_GATEWAY
+				HttpStatus.BAD_REQUEST
 			);
 		}
 	}
@@ -78,13 +83,12 @@ export class EntitiesService {
 	async isExist<E>(
 		findOptions: FindOptionsWhere<E>[],
 		repository: Repository<E>,
-		relations = {},
+		relations = null,
 		entityName = 'Entity'
 	): Promise<E> {
-		const candidate =
-			Object.keys(relations).length > 0
-				? await repository.findOne({ where: findOptions, relations })
-				: await repository.findOne({ where: findOptions });
+		const candidate = relations
+			? await repository.findOne({ where: findOptions, relations })
+			: await repository.findOne({ where: findOptions });
 
 		if (!candidate) {
 			const findOptionItems = findOptions.map(
@@ -105,7 +109,7 @@ export class EntitiesService {
 	}
 
 	getFindOptionsToFindDublicates<E>(
-		entity: E,
+		entity: E | null,
 		dto: Partial<E>,
 		uniqueFields: FindOptionsWhere<E>[]
 	): FindOptionsWhere<E>[] {

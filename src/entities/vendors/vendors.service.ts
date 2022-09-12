@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Vendor } from './entity/vendor.entity';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { CreateVendorDto } from './dto/create-vendor.dto';
 import { UpdateVendorDto } from './dto/update-vendor.dto';
 import { VendorUniqueFields } from './types/vendor-unique-fields.interface';
@@ -25,8 +25,12 @@ export class VendorsService {
 		return this.vendorRepository.findOne({ where: { id } });
 	}
 
-	async getVendorByCompanyName(company_name: string): Promise<Vendor> {
-		const candidate = await this.vendorRepository.findOne({
+	async getVendorByCompanyName(
+		company_name: string,
+		manager: EntityManager | null = null
+	): Promise<Vendor> {
+		const repository = this.getRepository(manager);
+		const candidate = await repository.findOne({
 			where: { company_name }
 		});
 
@@ -77,5 +81,15 @@ export class VendorsService {
 			this.vendorUniqueFieldsToCheck,
 			this.vendorRepository
 		);
+	}
+
+	private getRepository(
+		manager: EntityManager | null = null
+	): Repository<Vendor> {
+		const repository = manager
+			? manager.getRepository(Vendor)
+			: this.vendorRepository;
+
+		return repository;
 	}
 }

@@ -1,4 +1,4 @@
-import { IAttributesData } from '../types/attributes-data.interface';
+import { IAttributesData } from '../../attributes/types/attributes-data.interface';
 
 export class ProductCreationDataDto {
 	readonly product_name: string;
