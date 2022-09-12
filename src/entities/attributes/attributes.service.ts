@@ -1,29 +1,56 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EntityManager, Repository } from 'typeorm';
-import { EntitiesService } from '../entities.service';
+import {
+	DataSource,
+	EntityManager,
+	FindOptionsWhere,
+	Repository
+} from 'typeorm';
+
 import { Attribute } from './entity/attribute.entity';
+
 import { CreateAttributeDto } from './dto/create-attribute.dto';
 import { UpdateAttributeDto } from './dto/update-attribute.dto';
+
+import { EntitiesService } from '../entities.service';
+
 import { AttributeUniqueFields } from './types/attribute-unique-fields.interface';
+import { TransactionKit } from 'src/common/types/transaction-kit.interface';
+import { AttributeId } from './types/attribute-id.interface';
 
 @Injectable()
 export class AttributesService {
-	private readonly attributeUniqueFieldsToCheck: Partial<AttributeUniqueFields>[] =
+	private readonly attributeUniqueFieldsToCheck: FindOptionsWhere<AttributeUniqueFields>[] =
 		[{ attribute_name: '' }];
+
+	private uniqueFields: string[] = this.attributeUniqueFieldsToCheck
+		.map((option) => Object.keys(option))
+		.flat();
 
 	constructor(
 		@InjectRepository(Attribute)
 		private attributeRepository: Repository<Attribute>,
-		private entitiesService: EntitiesService
+		private entitiesService: EntitiesService,
+		private dataSource: DataSource
 	) {}
 
-	async getAllAttributes(): Promise<Attribute[]> {
-		return this.attributeRepository.find();
+	async getAllAttributes(
+		manager: EntityManager | null = null
+	): Promise<Attribute[]> {
+		const repository = this.getRepository(manager);
+		return repository.createQueryBuilder('attribute').getMany();
 	}
 
-	async getAttributeById(id: number): Promise<Attribute> {
-		return this.attributeRepository.findOne({ where: { id } });
+	async getAttributeById(
+		id: number,
+		manager: EntityManager | null = null
+	): Promise<Attribute> {
+		const repository = this.getRepository(manager);
+
+		return repository
+			.createQueryBuilder('attribute')
+			.where('attribute.id = :id', { id })
+			.getOne();
 	}
 
 	async getAttributeByName(
@@ -31,9 +58,13 @@ export class AttributesService {
 		manager: EntityManager | null = null
 	): Promise<Attribute> {
 		const repository = this.getRepository(manager);
-		const candidate = await repository.findOne({
-			where: { attribute_name }
-		});
+
+		const candidate = await repository
+			.createQueryBuilder('attribute')
+			.where('attribute.attribute_name = :attribute_name', {
+				attribute_name
+			})
+			.getOne();
 
 		if (!candidate) {
 			throw new HttpException(
@@ -48,42 +79,149 @@ export class AttributesService {
 	async createAttribute(
 		attributeDto: CreateAttributeDto
 	): Promise<Attribute> {
-		await this.findAttributeDublicate<CreateAttributeDto>(attributeDto);
-		const newAttribute = this.attributeRepository.create(attributeDto);
-		return this.attributeRepository.save(newAttribute);
+		const { queryRunner, repository } = this.getQueryRunnerAndRepository();
+
+		await queryRunner.connect();
+		await queryRunner.startTransaction();
+		try {
+			await this.findAttributeDublicate<CreateAttributeDto>(
+				null,
+				attributeDto,
+				repository
+			);
+
+			const attributeId = (
+				(
+					await repository
+						.createQueryBuilder()
+						.insert()
+						.into(Attribute)
+						.values(attributeDto)
+						.execute()
+				).identifiers as AttributeId[]
+			)[0].id;
+
+			const createdAttribute = await repository
+				.createQueryBuilder('attribute')
+				.where('attribute.id = :attributeId', { attributeId })
+				.getOne();
+
+			await queryRunner.commitTransaction();
+			return createdAttribute;
+		} catch (err) {
+			await queryRunner.rollbackTransaction();
+
+			if (err instanceof HttpException) {
+				throw err;
+			}
+
+			throw new HttpException(err.message, HttpStatus.BAD_REQUEST);
+		} finally {
+			await queryRunner.release();
+		}
 	}
 
 	async updateAttribute(
 		attributeDto: UpdateAttributeDto,
 		id: number
 	): Promise<Attribute> {
-		await this.entitiesService.isExist<Attribute>(
-			[{ id }],
-			this.attributeRepository
-		);
-		await this.findAttributeDublicate<CreateAttributeDto>(attributeDto);
+		const { queryRunner, repository, manager } =
+			this.getQueryRunnerAndRepository();
 
-		await this.attributeRepository.update(id, attributeDto);
-		// Get updated data about attribute and return it
-		return await this.getAttributeById(id);
+		await queryRunner.connect();
+		await queryRunner.startTransaction();
+		try {
+			const attribute = await this.entitiesService.isExist<Attribute>(
+				[{ id }],
+				repository
+			);
+
+			if (
+				this.entitiesService.doDtoHaveUniqueFields<UpdateAttributeDto>(
+					attributeDto,
+					this.uniqueFields
+				)
+			) {
+				await this.findAttributeDublicate<UpdateAttributeDto>(
+					attribute,
+					attributeDto,
+					repository
+				);
+			}
+
+			await repository
+				.createQueryBuilder()
+				.update(Attribute)
+				.set(attributeDto)
+				.where('id = :id', { id })
+				.execute();
+
+			const updatedAttribute = await this.getAttributeById(id, manager);
+
+			await queryRunner.commitTransaction();
+			return updatedAttribute;
+		} catch (err) {
+			await queryRunner.rollbackTransaction();
+
+			if (err instanceof HttpException) {
+				throw err;
+			}
+
+			throw new HttpException(err.message, HttpStatus.BAD_REQUEST);
+		} finally {
+			await queryRunner.release();
+		}
 	}
 
 	async deleteAttribute(id: number): Promise<Attribute> {
-		const attribute = await this.entitiesService.isExist<Attribute>(
-			[{ id }],
-			this.attributeRepository
-		);
-		await this.attributeRepository.delete(id);
-		return attribute;
+		const { queryRunner, repository } = this.getQueryRunnerAndRepository();
+
+		await queryRunner.connect();
+		await queryRunner.startTransaction();
+		try {
+			const attribute = await this.entitiesService.isExist<Attribute>(
+				[{ id }],
+				repository
+			);
+
+			await repository
+				.createQueryBuilder()
+				.delete()
+				.from(Attribute)
+				.where('id = :id', { id })
+				.execute();
+
+			await queryRunner.commitTransaction();
+			return attribute;
+		} catch (err) {
+			await queryRunner.rollbackTransaction();
+
+			if (err instanceof HttpException) {
+				throw err;
+			}
+
+			throw new HttpException(err.message, HttpStatus.BAD_REQUEST);
+		} finally {
+			await queryRunner.release();
+		}
 	}
 
 	private async findAttributeDublicate<D>(
-		attributeDto: D
-	): Promise<Attribute> {
-		return await this.entitiesService.checkForDublicates2<D, Attribute>(
-			attributeDto,
-			this.attributeUniqueFieldsToCheck,
-			this.attributeRepository
+		attribute: Attribute,
+		attributeDto: D,
+		repository: Repository<Attribute>
+	): Promise<void> {
+		const findOptions =
+			this.entitiesService.getFindOptionsToFindDublicates<Attribute>(
+				attribute,
+				attributeDto,
+				this.attributeUniqueFieldsToCheck
+			);
+
+		return await this.entitiesService.checkForDublicates<Attribute>(
+			repository,
+			findOptions,
+			'Attribute'
 		);
 	}
 
@@ -95,5 +233,13 @@ export class AttributesService {
 			: this.attributeRepository;
 
 		return repository;
+	}
+
+	private getQueryRunnerAndRepository(): TransactionKit<Attribute> {
+		const queryRunner = this.dataSource.createQueryRunner();
+		const manager = queryRunner.manager;
+		const repository = manager.getRepository(Attribute);
+
+		return { queryRunner, repository, manager };
 	}
 }
