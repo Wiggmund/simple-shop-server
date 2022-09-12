@@ -1,13 +1,17 @@
 import { Injectable } from '@nestjs/common';
-import { Photo } from './entity/photo.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EntityManager, Repository } from 'typeorm';
 import { Express } from 'express';
+import { EntityManager, Repository } from 'typeorm';
+
+import { Photo } from './entity/photo.entity';
+
 import { CreatePhotoDto } from './dto/create-photo.dto';
+
 import { EntitiesService } from '../entities.service';
 import { PhotoFilesService } from './photo-files.service';
-import { FindOptionsWhere } from 'typeorm';
+
 import { PhotoRelatedEntities } from './types/photo-related-entities.interface';
+import { PhotoId } from './types/photo-id.interface';
 
 @Injectable()
 export class PhotosService {
@@ -17,51 +21,70 @@ export class PhotosService {
 		private photoFilesService: PhotoFilesService
 	) {}
 
-	async getAllPhotos(): Promise<Photo[]> {
-		return this.photoRepository.find();
+	async getAllPhotos(manager: EntityManager | null = null): Promise<Photo[]> {
+		const repository = this.getRepository(manager);
+		return repository.createQueryBuilder('photo').getMany();
 	}
 
-	async getPhotoById(id: number) {
-		return this.photoRepository.find({ where: { id } });
+	async getPhotoById(
+		id: number,
+		manager: EntityManager | null = null
+	): Promise<Photo> {
+		const repository = this.getRepository(manager);
+
+		return repository
+			.createQueryBuilder('photo')
+			.where('photo.id = :id', { id })
+			.getOne();
 	}
 
 	async createPhoto(
 		file: Express.Multer.File,
 		manager: EntityManager | null = null
 	): Promise<Photo> {
-		const repository = manager
-			? manager.getRepository(Photo)
-			: this.photoRepository;
-
+		const repository = this.getRepository(manager);
 		const photoDto = new CreatePhotoDto(file);
-		const photo = repository.create(photoDto);
-		return repository.save(photo);
+
+		const photoId = (
+			(
+				await repository
+					.createQueryBuilder()
+					.insert()
+					.into(Photo)
+					.values(photoDto)
+					.execute()
+			).identifiers as PhotoId[]
+		)[0].id;
+
+		const createdPhoto = await repository
+			.createQueryBuilder('photo')
+			.where('photo.id = :photoId', { photoId })
+			.getOne();
+
+		return createdPhoto;
 	}
 
-	async deletePhotoById(id: number) {
+	async deletePhotoById(
+		id: number,
+		manager: EntityManager | null = null
+	): Promise<Photo> {
+		const repository = this.getRepository(manager);
+
 		const photo = await this.entitiesService.isExist<Photo>(
 			[{ id }],
 			this.photoRepository
 		);
+
 		this.photoFilesService.deletePhotoFile(photo);
-		await this.photoRepository.delete(id);
+
+		await repository
+			.createQueryBuilder()
+			.delete()
+			.from(Photo)
+			.where('id = :id', { id })
+			.execute();
+
 		return photo;
-	}
-
-	async deleteManyPhotosByCriteria(
-		findOptions: FindOptionsWhere<Photo>[],
-		manager: EntityManager | null = null
-	): Promise<Photo[]> {
-		const repository = this.getRepository(manager);
-
-		const photos = await repository.find({
-			where: findOptions
-		});
-		photos.forEach((photo) =>
-			this.photoFilesService.deletePhotoFile(photo)
-		);
-
-		return repository.remove([...photos]);
 	}
 
 	async deleteManyPhotos(

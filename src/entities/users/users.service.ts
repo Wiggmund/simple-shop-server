@@ -178,11 +178,6 @@ export class UsersService {
 				repository
 			);
 
-			await this.photosService.deleteManyPhotosByCriteria(
-				[{ user }],
-				queryRunner.manager
-			);
-
 			await this.photosService.deleteManyPhotos('user', id, manager);
 
 			await repository

@@ -37,7 +37,7 @@ export class VendorsService {
 		manager: EntityManager | null = null
 	): Promise<Vendor[]> {
 		const repository = this.getRepository(manager);
-		return repository.createQueryBuilder('user').getMany();
+		return repository.createQueryBuilder('vendor').getMany();
 	}
 
 	async getVendorById(
