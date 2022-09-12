@@ -1,30 +1,32 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Express } from 'express';
 import {
 	DataSource,
 	EntityManager,
 	FindOptionsWhere,
-	QueryRunner,
 	Repository
 } from 'typeorm';
-import { EntitiesService } from '../entities.service';
+
 import { User } from './entity/user.entity';
+
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+
 import { UserUniqueFields } from './types/user-unique-fields.interface';
-import { Express } from 'express';
+import { IUserID } from './types/user-id.interface';
+import { TransactionKit } from 'src/common/types/transaction-kit.interface';
+
+import { EntitiesService } from '../entities.service';
 import { PhotosService } from '../photos/photos.service';
 import { FileSystemService } from '../../file-system/file-system.service';
-import { IUserID } from './types/user-id.interface';
 
 @Injectable()
 export class UsersService {
-	private readonly uniqueConditions: FindOptionsWhere<UserUniqueFields>[] = [
-		{ firstName: '', lastName: '' },
-		{ email: '' },
-		{ phone: '' }
-	];
-	private uniqueFields: string[] = this.uniqueConditions
+	private readonly userUniqueFieldsToCheck: FindOptionsWhere<UserUniqueFields>[] =
+		[{ firstName: '', lastName: '' }, { email: '' }, { phone: '' }];
+
+	private uniqueFields: string[] = this.userUniqueFieldsToCheck
 		.map((option) => Object.keys(option))
 		.flat();
 
@@ -37,8 +39,9 @@ export class UsersService {
 		private dataSource: DataSource
 	) {}
 
-	async getAllUsers(): Promise<User[]> {
-		return this.userRepository.find({ relations: { photos: true } });
+	async getAllUsers(manager: EntityManager | null = null): Promise<User[]> {
+		const repository = this.getRepository(manager);
+		return repository.createQueryBuilder('user').getMany();
 	}
 
 	async getUserById(
@@ -47,7 +50,10 @@ export class UsersService {
 	): Promise<User> {
 		const repository = this.getRepository(manager);
 
-		return repository.findOne({ where: { id } });
+		return repository
+			.createQueryBuilder('user')
+			.where('user.id = :id', { id })
+			.getOne();
 	}
 
 	async createUser(
@@ -55,6 +61,7 @@ export class UsersService {
 		file: Express.Multer.File
 	): Promise<User> {
 		const { queryRunner, repository } = this.getQueryRunnerAndRepository();
+
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
 		try {
@@ -104,14 +111,15 @@ export class UsersService {
 				throw err;
 			}
 
-			throw new HttpException(err.details, HttpStatus.BAD_REQUEST);
+			throw new HttpException(err.message, HttpStatus.BAD_REQUEST);
 		} finally {
 			await queryRunner.release();
 		}
 	}
 
 	async updateUser(userDto: UpdateUserDto, id: number): Promise<User> {
-		const { queryRunner, repository } = this.getQueryRunnerAndRepository();
+		const { queryRunner, repository, manager } =
+			this.getQueryRunnerAndRepository();
 
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
@@ -121,12 +129,12 @@ export class UsersService {
 				repository
 			);
 
-			const dtoKeys = Object.keys(userDto);
-			const doHaveUniqueField = dtoKeys.some((key) =>
-				this.uniqueFields.includes(key)
-			);
-
-			if (doHaveUniqueField) {
+			if (
+				this.entitiesService.doDtoHaveUniqueFields<UpdateUserDto>(
+					userDto,
+					this.uniqueFields
+				)
+			) {
 				await this.findUserDublicate<UpdateUserDto>(
 					user,
 					userDto,
@@ -134,9 +142,14 @@ export class UsersService {
 				);
 			}
 
-			await repository.update(id, userDto);
-			// Get updated data about user and return it
-			const updatedUser = await this.getUserById(id, queryRunner.manager);
+			await repository
+				.createQueryBuilder()
+				.update(User)
+				.set(userDto)
+				.where('id = :id', { id })
+				.execute();
+
+			const updatedUser = await this.getUserById(id, manager);
 
 			await queryRunner.commitTransaction();
 			return updatedUser;
@@ -147,14 +160,15 @@ export class UsersService {
 				throw err;
 			}
 
-			throw new HttpException(err.detail, HttpStatus.BAD_REQUEST);
+			throw new HttpException(err.message, HttpStatus.BAD_REQUEST);
 		} finally {
 			await queryRunner.release();
 		}
 	}
 
 	async deleteUser(id: number): Promise<User> {
-		const { queryRunner, repository } = this.getQueryRunnerAndRepository();
+		const { queryRunner, repository, manager } =
+			this.getQueryRunnerAndRepository();
 
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
@@ -168,6 +182,8 @@ export class UsersService {
 				[{ user }],
 				queryRunner.manager
 			);
+
+			await this.photosService.deleteManyPhotos('user', id, manager);
 
 			await repository
 				.createQueryBuilder()
@@ -185,7 +201,7 @@ export class UsersService {
 				throw err;
 			}
 
-			throw new HttpException(err.detail, HttpStatus.BAD_REQUEST);
+			throw new HttpException(err.message, HttpStatus.BAD_REQUEST);
 		} finally {
 			await queryRunner.release();
 		}
@@ -200,7 +216,7 @@ export class UsersService {
 			this.entitiesService.getFindOptionsToFindDublicates<User>(
 				user,
 				userDto,
-				this.uniqueConditions
+				this.userUniqueFieldsToCheck
 			);
 
 		return await this.entitiesService.checkForDublicates<User>(
@@ -210,14 +226,12 @@ export class UsersService {
 		);
 	}
 
-	private getQueryRunnerAndRepository(): {
-		queryRunner: QueryRunner;
-		repository: Repository<User>;
-	} {
+	private getQueryRunnerAndRepository(): TransactionKit<User> {
 		const queryRunner = this.dataSource.createQueryRunner();
-		const repository = queryRunner.manager.getRepository(User);
+		const manager = queryRunner.manager;
+		const repository = manager.getRepository(User);
 
-		return { queryRunner, repository };
+		return { queryRunner, repository, manager };
 	}
 
 	private getRepository(
