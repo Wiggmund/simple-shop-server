@@ -13,6 +13,12 @@ export class Transaction {
 	@Column('float4')
 	full_price: number;
 
+	@Column()
+	productId: number;
+
+	@Column()
+	userId: number;
+
 	@ManyToOne(() => User, (user) => user.transactions)
 	user: User;
 
