@@ -1,60 +1,214 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { EntitiesService } from '../entities.service';
+import {
+	DataSource,
+	EntityManager,
+	FindOptionsWhere,
+	Repository
+} from 'typeorm';
+
 import { Role } from './entity/role.entity';
+
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
+
+import { EntitiesService } from '../entities.service';
+
 import { RoleUniqueFields } from './types/role-unique-fields.interface';
+import { TransactionKit } from 'src/common/types/transaction-kit.interface';
+import { RoleId } from './types/role-id.interface';
 
 @Injectable()
 export class RolesService {
-	private readonly roleUniqueFieldsToCheck: Partial<RoleUniqueFields>[] = [
-		{ value: '' }
-	];
+	private readonly roleUniqueFieldsToCheck: FindOptionsWhere<RoleUniqueFields>[] =
+		[{ value: '' }];
+
+	private uniqueFields: string[] = this.roleUniqueFieldsToCheck
+		.map((option) => Object.keys(option))
+		.flat();
 
 	constructor(
 		@InjectRepository(Role) private roleRepository: Repository<Role>,
-		private entitiesService: EntitiesService
+		private entitiesService: EntitiesService,
+		private dataSource: DataSource
 	) {}
 
-	async getAllRoles(): Promise<Role[]> {
-		return this.roleRepository.find();
+	async getAllRoles(manager: EntityManager | null = null): Promise<Role[]> {
+		const repository = this.getRepository(manager);
+		return repository.createQueryBuilder('role').getMany();
 	}
 
-	async getRoleById(id: number): Promise<Role> {
-		return this.roleRepository.findOne({ where: { id } });
+	async getRoleById(
+		id: number,
+		manager: EntityManager | null = null
+	): Promise<Role> {
+		const repository = this.getRepository(manager);
+
+		return repository
+			.createQueryBuilder('role')
+			.where('role.id = :id', { id })
+			.getOne();
 	}
 
 	async createRole(roleDto: CreateRoleDto): Promise<Role> {
-		await this.findRoleDublicate<CreateRoleDto>(roleDto);
-		const newRole = this.roleRepository.create(roleDto);
-		return this.roleRepository.save(newRole);
+		const { queryRunner, repository } = this.getQueryRunnerAndRepository();
+
+		await queryRunner.connect();
+		await queryRunner.startTransaction();
+		try {
+			await this.findRoleDublicate<CreateRoleDto>(
+				null,
+				roleDto,
+				repository
+			);
+
+			const roleId = (
+				(
+					await repository
+						.createQueryBuilder()
+						.insert()
+						.into(Role)
+						.values(roleDto)
+						.execute()
+				).identifiers as RoleId[]
+			)[0].id;
+
+			const createdRole = await repository
+				.createQueryBuilder('role')
+				.where('role.id = :roleId', { roleId })
+				.getOne();
+
+			await queryRunner.commitTransaction();
+			return createdRole;
+		} catch (err) {
+			await queryRunner.rollbackTransaction();
+
+			if (err instanceof HttpException) {
+				throw err;
+			}
+
+			throw new HttpException(err.message, HttpStatus.BAD_REQUEST);
+		} finally {
+			await queryRunner.release();
+		}
 	}
 
 	async updateRole(roleDto: UpdateRoleDto, id: number): Promise<Role> {
-		await this.entitiesService.isExist<Role>([{ id }], this.roleRepository);
-		await this.findRoleDublicate<UpdateRoleDto>(roleDto);
+		const { queryRunner, repository, manager } =
+			this.getQueryRunnerAndRepository();
 
-		await this.roleRepository.update(id, roleDto);
-		// Get updated data about role and return it
-		return await this.getRoleById(id);
+		await queryRunner.connect();
+		await queryRunner.startTransaction();
+		try {
+			const role = await this.entitiesService.isExist<Role>(
+				[{ id }],
+				repository
+			);
+
+			if (
+				this.entitiesService.doDtoHaveUniqueFields<UpdateRoleDto>(
+					roleDto,
+					this.uniqueFields
+				)
+			) {
+				await this.findRoleDublicate<UpdateRoleDto>(
+					role,
+					roleDto,
+					repository
+				);
+			}
+
+			await repository
+				.createQueryBuilder()
+				.update(Role)
+				.set(roleDto)
+				.where('id = :id', { id })
+				.execute();
+
+			const updatedRole = await this.getRoleById(id, manager);
+
+			await queryRunner.commitTransaction();
+			return updatedRole;
+		} catch (err) {
+			await queryRunner.rollbackTransaction();
+
+			if (err instanceof HttpException) {
+				throw err;
+			}
+
+			throw new HttpException(err.message, HttpStatus.BAD_REQUEST);
+		} finally {
+			await queryRunner.release();
+		}
 	}
 
 	async deleteRole(id: number): Promise<Role> {
-		const role = await this.entitiesService.isExist<Role>(
-			[{ id }],
-			this.roleRepository
-		);
-		await this.roleRepository.delete(id);
-		return role;
+		const { queryRunner, repository } = this.getQueryRunnerAndRepository();
+
+		await queryRunner.connect();
+		await queryRunner.startTransaction();
+		try {
+			const role = await this.entitiesService.isExist<Role>(
+				[{ id }],
+				repository
+			);
+
+			await repository
+				.createQueryBuilder()
+				.delete()
+				.from(Role)
+				.where('id = :id', { id })
+				.execute();
+
+			await queryRunner.commitTransaction();
+			return role;
+		} catch (err) {
+			await queryRunner.rollbackTransaction();
+
+			if (err instanceof HttpException) {
+				throw err;
+			}
+
+			throw new HttpException(err.message, HttpStatus.BAD_REQUEST);
+		} finally {
+			await queryRunner.release();
+		}
 	}
 
-	private async findRoleDublicate<D>(roleDto: D): Promise<Role> {
-		return await this.entitiesService.checkForDublicates2<D, Role>(
-			roleDto,
-			this.roleUniqueFieldsToCheck,
-			this.roleRepository
+	private async findRoleDublicate<D>(
+		role: Role,
+		roleDto: D,
+		repository: Repository<Role>
+	): Promise<void> {
+		const findOptions =
+			this.entitiesService.getFindOptionsToFindDublicates<Role>(
+				role,
+				roleDto,
+				this.roleUniqueFieldsToCheck
+			);
+
+		return await this.entitiesService.checkForDublicates<Role>(
+			repository,
+			findOptions,
+			'Role'
 		);
+	}
+
+	private getRepository(
+		manager: EntityManager | null = null
+	): Repository<Role> {
+		const repository = manager
+			? manager.getRepository(Role)
+			: this.roleRepository;
+
+		return repository;
+	}
+
+	private getQueryRunnerAndRepository(): TransactionKit<Role> {
+		const queryRunner = this.dataSource.createQueryRunner();
+		const manager = queryRunner.manager;
+		const repository = manager.getRepository(Role);
+
+		return { queryRunner, repository, manager };
 	}
 }
