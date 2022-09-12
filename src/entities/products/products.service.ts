@@ -21,6 +21,7 @@ import { VendorsService } from '../vendors/vendors.service';
 import { AttributesService } from '../attributes/attributes.service';
 import { FileSystemService } from '../../file-system/file-system.service';
 import { ProductToAttributeService } from './product-to-attribute.service';
+import { CommentsService } from '../comments/comments.service';
 
 import { ProductId } from './types/product-id.interface';
 import { IAttributeIdAndValue } from '../attributes/types/attribute-id-and-value.interface';
@@ -51,6 +52,7 @@ export class ProductsService {
 		private attributesService: AttributesService,
 		private fileSystemService: FileSystemService,
 		private productToAttributeService: ProductToAttributeService,
+		private commentsService: CommentsService,
 		private dataSource: DataSource
 	) {}
 
@@ -280,6 +282,7 @@ export class ProductsService {
 			);
 
 			await this.photosService.deleteManyPhotos('product', id, manager);
+			await this.commentsService.unbindEntities('product', id, manager);
 
 			await repository
 				.createQueryBuilder()

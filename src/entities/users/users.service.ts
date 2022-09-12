@@ -20,6 +20,7 @@ import { TransactionKit } from '../../common/types/transaction-kit.interface';
 import { EntitiesService } from '../entities.service';
 import { PhotosService } from '../photos/photos.service';
 import { FileSystemService } from '../../file-system/file-system.service';
+import { CommentsService } from '../comments/comments.service';
 
 @Injectable()
 export class UsersService {
@@ -36,6 +37,7 @@ export class UsersService {
 		private entitiesService: EntitiesService,
 		private photosService: PhotosService,
 		private fileSystemService: FileSystemService,
+		private commentsService: CommentsService,
 		private dataSource: DataSource
 	) {}
 
@@ -179,6 +181,7 @@ export class UsersService {
 			);
 
 			await this.photosService.deleteManyPhotos('user', id, manager);
+			await this.commentsService.unbindEntities('user', id, manager);
 
 			await repository
 				.createQueryBuilder()
