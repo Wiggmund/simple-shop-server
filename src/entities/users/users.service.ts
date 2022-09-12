@@ -14,7 +14,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
 import { UserUniqueFields } from './types/user-unique-fields.interface';
-import { IUserID } from './types/user-id.interface';
+import { UserId } from './types/user-id.interface';
 import { TransactionKit } from '../../common/types/transaction-kit.interface';
 
 import { EntitiesService } from '../entities.service';
@@ -79,7 +79,7 @@ export class UsersService {
 						.into(User)
 						.values(userDto)
 						.execute()
-				).identifiers as IUserID[]
+				).identifiers as UserId[]
 			)[0].id;
 
 			if (file) {

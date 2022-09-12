@@ -15,7 +15,7 @@ import { UpdateCategoryDto } from './dto/update-category.dto';
 import { EntitiesService } from '../entities.service';
 
 import { CategoryUniqueFields } from './types/category-unique-fields.interface';
-import { TransactionKit } from 'src/common/types/transaction-kit.interface';
+import { TransactionKit } from '../../common/types/transaction-kit.interface';
 import { CategoryId } from './types/category-id.interface';
 
 @Injectable()

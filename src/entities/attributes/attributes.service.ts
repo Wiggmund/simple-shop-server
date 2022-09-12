@@ -15,7 +15,7 @@ import { UpdateAttributeDto } from './dto/update-attribute.dto';
 import { EntitiesService } from '../entities.service';
 
 import { AttributeUniqueFields } from './types/attribute-unique-fields.interface';
-import { TransactionKit } from 'src/common/types/transaction-kit.interface';
+import { TransactionKit } from '../../common/types/transaction-kit.interface';
 import { AttributeId } from './types/attribute-id.interface';
 
 @Injectable()

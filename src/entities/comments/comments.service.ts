@@ -4,13 +4,17 @@ import { DataSource, EntityManager, Repository } from 'typeorm';
 
 import { Comment } from './entity/comment.entity';
 
-import { CreateCommentDto } from './dto/create-comment.dto';
+import { CreateCommentDataDto } from './dto/create-comment-data.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 
 import { EntitiesService } from '../entities.service';
 
 import { TransactionKit } from '../../common/types/transaction-kit.interface';
 import { CommentId } from './types/comment-id.interface';
+import { UsersService } from '../users/users.service';
+import { User } from '../users/entity/user.entity';
+import { CreateCommentDto } from './dto/create-comment.dto';
+import { Product } from '../products/entity/product.entity';
 
 @Injectable()
 export class CommentsService {
@@ -18,6 +22,7 @@ export class CommentsService {
 		@InjectRepository(Comment)
 		private commentRepository: Repository<Comment>,
 		private entitiesService: EntitiesService,
+		private usersService: UsersService,
 		private dataSource: DataSource
 	) {}
 
@@ -40,12 +45,28 @@ export class CommentsService {
 			.getOne();
 	}
 
-	async createComment(commentDto: CreateCommentDto): Promise<Comment> {
-		const { queryRunner, repository } = this.getQueryRunnerAndRepository();
+	async createComment(
+		commentDataDto: CreateCommentDataDto
+	): Promise<Comment> {
+		const { queryRunner, repository, manager } =
+			this.getQueryRunnerAndRepository();
 
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
 		try {
+			const commentDto = new CreateCommentDto(commentDataDto);
+			const { userId, productId } = commentDataDto;
+
+			await this.entitiesService.isExist<User>(
+				[{ id: userId }],
+				manager.getRepository(User)
+			);
+
+			await this.entitiesService.isExist<Product>(
+				[{ id: productId }],
+				manager.getRepository(Product)
+			);
+
 			const commentId = (
 				(
 					await repository
@@ -57,8 +78,22 @@ export class CommentsService {
 				).identifiers as CommentId[]
 			)[0].id;
 
+			await repository
+				.createQueryBuilder()
+				.relation(Comment, 'user')
+				.of(commentId)
+				.set(userId);
+
+			await repository
+				.createQueryBuilder()
+				.relation(Comment, 'product')
+				.of(commentId)
+				.set(productId);
+
 			const createdComment = await repository
 				.createQueryBuilder('comment')
+				.leftJoinAndSelect('comment.user', 'user')
+				.leftJoinAndSelect('comment.product', 'product')
 				.where('comment.id = :commentId', { commentId })
 				.getOne();
 
