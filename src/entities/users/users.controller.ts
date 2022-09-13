@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UsersService } from './users.service';
+import { UsersService } from './services/users.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Express } from 'express';
 import { DtoValidationPipe } from '../../common/pipes/dto-validation.pipe';

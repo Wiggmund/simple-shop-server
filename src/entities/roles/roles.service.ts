@@ -50,6 +50,34 @@ export class RolesService {
 			.getOne();
 	}
 
+	async getRoleByValue(
+		value: string,
+		manager: EntityManager | null = null
+	): Promise<Role> {
+		const repository = this.getRepository(manager);
+
+		return await repository
+			.createQueryBuilder('role')
+			.where('role.value = :value', { value })
+			.getOne();
+	}
+
+	async getRoleByValueOrFail(
+		value: string,
+		manager: EntityManager | null = null
+	): Promise<Role> {
+		const candidate = await this.getRoleByValue(value, manager);
+
+		if (!candidate) {
+			throw new HttpException(
+				`Role with given value=${value} not found`,
+				HttpStatus.BAD_REQUEST
+			);
+		}
+
+		return candidate;
+	}
+
 	async createRole(roleDto: CreateRoleDto): Promise<Role> {
 		const { queryRunner, repository } = this.getQueryRunnerAndRepository();
 

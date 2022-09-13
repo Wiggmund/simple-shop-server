@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Express } from 'express';
-import { UserPhotosService } from './user-photos.service';
+import { UserPhotosService } from './services/user-photos.service';
 
 @Controller('users')
 export class UserPhotosController {

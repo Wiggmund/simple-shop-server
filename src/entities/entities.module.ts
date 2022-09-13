@@ -9,7 +9,7 @@ import { Role } from './roles/entity/role.entity';
 import { Transaction } from './transactions/entity/transaction.entity';
 import { User } from './users/entity/user.entity';
 import { UsersController } from './users/users.controller';
-import { UsersService } from './users/users.service';
+import { UsersService } from './users/services/users.service';
 import { Vendor } from './vendors/entity/vendor.entity';
 import { VendorsController } from './vendors/vendors.controller';
 import { VendorsService } from './vendors/vendors.service';
@@ -34,12 +34,14 @@ import { Request } from 'express';
 import { PhotosController } from './photos/photos.controller';
 import { PhotosService } from './photos/photos.service';
 import { UserPhotosController } from './users/user-photos.controller';
-import { UserPhotosService } from './users/user-photos.service';
+import { UserPhotosService } from './users/services/user-photos.service';
 import { PhotoFilesService } from './photos/photo-files.service';
 import { FileSystemModule } from '../file-system/file-system.module';
 import { ProductToAttribute } from './products/entity/product-to-attribute.entity';
 import { RefreshToken } from './refreshTokens/entity/refresh-token.entity';
 import { ProductToAttributeService } from './products/product-to-attribute.service';
+import { UserRolesController } from './users/user-roles.controller';
+import { UserRolesService } from './users/services/user-roles.service';
 
 @Module({
 	imports: [
@@ -79,6 +81,7 @@ import { ProductToAttributeService } from './products/product-to-attribute.servi
 	controllers: [
 		UsersController,
 		UserPhotosController,
+		UserRolesController,
 		VendorsController,
 		TransactionsController,
 		RolesController,
@@ -92,6 +95,7 @@ import { ProductToAttributeService } from './products/product-to-attribute.servi
 		EntitiesService,
 		UsersService,
 		UserPhotosService,
+		UserRolesService,
 		VendorsService,
 		TransactionsService,
 		RolesService,

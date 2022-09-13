@@ -1,5 +1,5 @@
-import { ProductIdType } from 'src/entities/products/types/product-id.interface';
-import { UserIdType } from 'src/entities/users/types/user-id.interface';
+import { ProductIdType } from '../../products/types/product-id.interface';
+import { UserIdType } from '../../users/types/user-id.interface';
 
 export class CreateTransactionDto {
 	readonly userId: UserIdType;

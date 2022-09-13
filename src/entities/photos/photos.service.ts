@@ -92,20 +92,22 @@ export class PhotosService {
 	): Promise<void> {
 		const repository = this.getRepository(manager);
 
-		const photos = await repository
-			.createQueryBuilder('photo')
-			.select(['photo.filename', 'photo.type'])
-			.where('photo.id IN (:...ids)', { ids })
-			.getMany();
+		if (ids.length > 0) {
+			const photos = await repository
+				.createQueryBuilder('photo')
+				.select(['photo.filename', 'photo.type'])
+				.where('photo.id IN (:...ids)', { ids })
+				.getMany();
 
-		this.photoFilesService.deleteManyPhotoFiles(photos);
+			this.photoFilesService.deleteManyPhotoFiles(photos);
 
-		await repository
-			.createQueryBuilder()
-			.delete()
-			.from(Photo)
-			.where('id IN (:...ids)', { ids })
-			.execute();
+			await repository
+				.createQueryBuilder()
+				.delete()
+				.from(Photo)
+				.where('id IN (:...ids)', { ids })
+				.execute();
+		}
 	}
 
 	private getRepository(

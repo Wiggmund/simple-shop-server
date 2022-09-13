@@ -8,24 +8,24 @@ import {
 	Repository
 } from 'typeorm';
 
-import { User } from './entity/user.entity';
-import { Photo } from '../photos/entity/photo.entity';
-import { Transaction } from '../transactions/entity/transaction.entity';
-import { Comment } from '../comments/entity/comment.entity';
+import { User } from '../entity/user.entity';
+import { Photo } from '../../photos/entity/photo.entity';
+import { Transaction } from '../../transactions/entity/transaction.entity';
+import { Comment } from '../../comments/entity/comment.entity';
 
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { CreateUserDto } from '../dto/create-user.dto';
+import { UpdateUserDto } from '../dto/update-user.dto';
 
-import { UserUniqueFields } from './types/user-unique-fields.interface';
-import { UserId, UserIdType } from './types/user-id.interface';
-import { TransactionKit } from '../../common/types/transaction-kit.interface';
-import { IUserRelatedEntitiesIds } from './types/user-related-entities-ids.interface';
+import { UserUniqueFields } from '../types/user-unique-fields.interface';
+import { UserId, UserIdType } from '../types/user-id.interface';
+import { TransactionKit } from '../../../common/types/transaction-kit.interface';
+import { IUserRelatedEntitiesIds } from '../types/user-related-entities-ids.interface';
 
-import { EntitiesService } from '../entities.service';
-import { PhotosService } from '../photos/photos.service';
-import { FileSystemService } from '../../file-system/file-system.service';
-import { CommentsService } from '../comments/comments.service';
-import { TransactionsService } from '../transactions/transactions.service';
+import { EntitiesService } from '../../entities.service';
+import { PhotosService } from '../../photos/photos.service';
+import { FileSystemService } from '../../../file-system/file-system.service';
+import { CommentsService } from '../../comments/comments.service';
+import { TransactionsService } from '../../transactions/transactions.service';
 
 @Injectable()
 export class UsersService {
@@ -62,6 +62,22 @@ export class UsersService {
 			.createQueryBuilder('user')
 			.where('user.id = :id', { id })
 			.getOne();
+	}
+
+	async getUserByIdOrFail(
+		id: UserIdType,
+		manager: EntityManager | null = null
+	): Promise<User> {
+		const candidate = await this.getUserById(id, manager);
+
+		if (!candidate) {
+			throw new HttpException(
+				`User with given id=${id} not found`,
+				HttpStatus.BAD_REQUEST
+			);
+		}
+
+		return candidate;
 	}
 
 	async createUser(
@@ -187,6 +203,8 @@ export class UsersService {
 			);
 			const { photosIds, commentsIds, transactionIds } =
 				await this.getRelatedEntitiesIds(id, repository);
+
+			console.log('photosIds', photosIds, photosIds.length);
 
 			await this.photosService.deleteManyPhotosByIds(photosIds, manager);
 

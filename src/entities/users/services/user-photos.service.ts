@@ -2,10 +2,10 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Express } from 'express';
 import { Repository } from 'typeorm';
-import { EntitiesService } from '../entities.service';
-import { Photo } from '../photos/entity/photo.entity';
-import { PhotosService } from '../photos/photos.service';
-import { User } from './entity/user.entity';
+import { EntitiesService } from '../../entities.service';
+import { Photo } from '../../photos/entity/photo.entity';
+import { PhotosService } from '../../photos/photos.service';
+import { User } from '../entity/user.entity';
 
 @Injectable()
 export class UserPhotosService {
