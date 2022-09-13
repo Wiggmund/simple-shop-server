@@ -13,10 +13,10 @@ export class Transaction {
 	@Column('float4')
 	full_price: number;
 
-	@Column()
+	@Column({ nullable: true })
 	productId: number;
 
-	@Column()
+	@Column({ nullable: true })
 	userId: number;
 
 	@ManyToOne(() => User, (user) => user.transactions)

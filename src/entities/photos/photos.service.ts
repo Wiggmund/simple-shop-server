@@ -104,7 +104,7 @@ export class PhotosService {
 			.createQueryBuilder()
 			.delete()
 			.from(Photo)
-			.where('photo.id IN (:...ids)', { ids })
+			.where('id IN (:...ids)', { ids })
 			.execute();
 	}
 
