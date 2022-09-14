@@ -1,12 +1,7 @@
-import {
-	ArgumentMetadata,
-	HttpException,
-	HttpStatus,
-	Injectable,
-	PipeTransform
-} from '@nestjs/common';
+import { ArgumentMetadata, Injectable, PipeTransform } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { validate, ValidationError } from 'class-validator';
+import { DtoValidationException } from '../exceptions/dto-validation.exception';
 
 @Injectable()
 export class DtoValidationPipe implements PipeTransform<any> {
@@ -15,9 +10,8 @@ export class DtoValidationPipe implements PipeTransform<any> {
 		const errors = await validate(targetObject);
 
 		if (errors.length > 0) {
-			throw new HttpException(
-				this.generateErrorMessages(errors),
-				HttpStatus.BAD_REQUEST
+			throw new DtoValidationException(
+				this.generateErrorMessages(errors)
 			);
 		}
 

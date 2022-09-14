@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { forwardRef, HttpException, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Express } from 'express';
 import { EntityManager, FindOptionsWhere, Repository } from 'typeorm';
@@ -21,6 +21,8 @@ import { FileSystemService } from '../../../file-system/file-system.service';
 import { CommentsService } from '../../comments/comments.service';
 import { TransactionsService } from '../../transactions/transactions.service';
 import { AvailableEntitiesEnum } from '../../../common/enums/available-entities.enum';
+import { EntityNotFoundException } from '../../../common/exceptions/entity-not-found.exception';
+import { DatabaseInternalException } from '../../../common/exceptions/database-internal.exception';
 
 @Injectable()
 export class UsersService {
@@ -38,6 +40,8 @@ export class UsersService {
 		private photosService: PhotosService,
 		private fileSystemService: FileSystemService,
 		private commentsService: CommentsService,
+
+		@Inject(forwardRef(() => TransactionsService))
 		private transactionsService: TransactionsService
 	) {}
 
@@ -61,22 +65,14 @@ export class UsersService {
 			AvailableEntitiesEnum.User
 		);
 
-		return repository
+		const candidate = await repository
 			.createQueryBuilder('user')
 			.where('user.id = :id', { id })
 			.getOne();
-	}
-
-	async getUserByIdOrFail(
-		id: UserIdType,
-		manager: EntityManager | null = null
-	): Promise<User> {
-		const candidate = await this.getUserById(id, manager);
 
 		if (!candidate) {
-			throw new HttpException(
-				`User with given id=${id} not found`,
-				HttpStatus.BAD_REQUEST
+			throw new EntityNotFoundException(
+				`User with given id=${id} not found`
 			);
 		}
 
@@ -146,7 +142,7 @@ export class UsersService {
 				throw err;
 			}
 
-			throw new HttpException(err.message, HttpStatus.BAD_REQUEST);
+			throw new DatabaseInternalException(err);
 		} finally {
 			await queryRunner.release();
 		}
@@ -198,7 +194,7 @@ export class UsersService {
 				throw err;
 			}
 
-			throw new HttpException(err.message, HttpStatus.BAD_REQUEST);
+			throw new DatabaseInternalException(err);
 		} finally {
 			await queryRunner.release();
 		}
@@ -251,7 +247,7 @@ export class UsersService {
 				throw err;
 			}
 
-			throw new HttpException(err.message, HttpStatus.BAD_REQUEST);
+			throw new DatabaseInternalException(err);
 		} finally {
 			await queryRunner.release();
 		}

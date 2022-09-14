@@ -12,6 +12,7 @@ import { PhotoFilesService } from './photo-files.service';
 
 import { PhotoId, PhotoIdType } from './types/photo-id.interface';
 import { AvailableEntitiesEnum } from '../../common/enums/available-entities.enum';
+import { EntityNotFoundException } from '../../common/exceptions/entity-not-found.exception';
 
 @Injectable()
 export class PhotosService {
@@ -41,10 +42,18 @@ export class PhotosService {
 			AvailableEntitiesEnum.Photo
 		);
 
-		return repository
+		const candidate = await repository
 			.createQueryBuilder('photo')
 			.where('photo.id = :id', { id })
 			.getOne();
+
+		if (!candidate) {
+			throw new EntityNotFoundException(
+				`Photo with given id=${id} not found`
+			);
+		}
+
+		return candidate;
 	}
 
 	async createPhoto(

@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { forwardRef, HttpException, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 
@@ -19,13 +19,23 @@ import { TransactionRelatedEntities } from './types/transaction-related-entities
 
 import { EntitiesService } from '../entities.service';
 import { AvailableEntitiesEnum } from '../../common/enums/available-entities.enum';
+import { EntityNotFoundException } from '../../common/exceptions/entity-not-found.exception';
+import { UsersService } from '../users/services/users.service';
+import { ProductsService } from '../products/products.service';
+import { DatabaseInternalException } from '../../common/exceptions/database-internal.exception';
 
 @Injectable()
 export class TransactionsService {
 	constructor(
 		@InjectRepository(Transaction)
 		private transactionRepository: Repository<Transaction>,
-		private entitiesService: EntitiesService
+		private entitiesService: EntitiesService,
+
+		@Inject(forwardRef(() => ProductsService))
+		private productsService: ProductsService,
+
+		@Inject(forwardRef(() => UsersService))
+		private usersService: UsersService
 	) {}
 
 	async getAllTransactions(
@@ -50,10 +60,18 @@ export class TransactionsService {
 			AvailableEntitiesEnum.Transaction
 		);
 
-		return repository
+		const candidate = await repository
 			.createQueryBuilder('transaction')
 			.where('transaction.id = :id', { id })
 			.getOne();
+
+		if (!candidate) {
+			throw new EntityNotFoundException(
+				`Transaction with given id=${id} not found`
+			);
+		}
+
+		return candidate;
 	}
 
 	async createTransaction(
@@ -98,7 +116,7 @@ export class TransactionsService {
 				throw err;
 			}
 
-			throw new HttpException(err.message, HttpStatus.BAD_REQUEST);
+			throw new DatabaseInternalException(err);
 		} finally {
 			await queryRunner.release();
 		}
@@ -145,7 +163,7 @@ export class TransactionsService {
 				throw err;
 			}
 
-			throw new HttpException(err.message, HttpStatus.BAD_REQUEST);
+			throw new DatabaseInternalException(err);
 		} finally {
 			await queryRunner.release();
 		}
@@ -181,7 +199,7 @@ export class TransactionsService {
 				throw err;
 			}
 
-			throw new HttpException(err.message, HttpStatus.BAD_REQUEST);
+			throw new DatabaseInternalException(err);
 		} finally {
 			await queryRunner.release();
 		}
@@ -236,14 +254,10 @@ export class TransactionsService {
 		productId: ProductIdType,
 		manager: EntityManager | null = null
 	): Promise<{ user: User; product: Product }> {
-		const user = await this.entitiesService.isExist<User>(
-			[{ id: userId }],
-			manager.getRepository(User)
-		);
-
-		const product = await this.entitiesService.isExist<Product>(
-			[{ id: productId }],
-			manager.getRepository(Product)
+		const user = await this.usersService.getUserById(userId, manager);
+		const product = await this.productsService.getProductById(
+			productId,
+			manager
 		);
 
 		return { user, product };

@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, FindOptionsWhere, Repository } from 'typeorm';
 
@@ -12,6 +12,8 @@ import { EntitiesService } from '../entities.service';
 import { CategoryUniqueFields } from './types/category-unique-fields.interface';
 import { CategoryId } from './types/category-id.interface';
 import { AvailableEntitiesEnum } from '../../common/enums/available-entities.enum';
+import { EntityNotFoundException } from '../../common/exceptions/entity-not-found.exception';
+import { DatabaseInternalException } from '../../common/exceptions/database-internal.exception';
 
 @Injectable()
 export class CategoriesService {
@@ -50,10 +52,18 @@ export class CategoriesService {
 			AvailableEntitiesEnum.Category
 		);
 
-		return repository
+		const candidate = await repository
 			.createQueryBuilder('category')
 			.where('category.id = :id', { id })
 			.getOne();
+
+		if (!candidate) {
+			throw new EntityNotFoundException(
+				`Category with given id=${id} not found`
+			);
+		}
+
+		return candidate;
 	}
 
 	async getCategoryByName(
@@ -72,9 +82,8 @@ export class CategoriesService {
 			.getOne();
 
 		if (!candidate) {
-			throw new HttpException(
-				'Category with given category_name not found',
-				HttpStatus.NOT_FOUND
+			throw new EntityNotFoundException(
+				`Category with given category_name=${category_name} not found`
 			);
 		}
 
@@ -122,7 +131,7 @@ export class CategoriesService {
 				throw err;
 			}
 
-			throw new HttpException(err.message, HttpStatus.BAD_REQUEST);
+			throw new DatabaseInternalException(err);
 		} finally {
 			await queryRunner.release();
 		}
@@ -177,7 +186,7 @@ export class CategoriesService {
 				throw err;
 			}
 
-			throw new HttpException(err.message, HttpStatus.BAD_REQUEST);
+			throw new DatabaseInternalException(err);
 		} finally {
 			await queryRunner.release();
 		}
@@ -213,7 +222,7 @@ export class CategoriesService {
 				throw err;
 			}
 
-			throw new HttpException(err.message, HttpStatus.BAD_REQUEST);
+			throw new DatabaseInternalException(err);
 		} finally {
 			await queryRunner.release();
 		}

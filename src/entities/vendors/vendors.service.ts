@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, FindOptionsWhere, Repository } from 'typeorm';
 
@@ -12,6 +12,8 @@ import { IVendorID } from './types/vendor-id.interface';
 
 import { EntitiesService } from '../entities.service';
 import { AvailableEntitiesEnum } from '../../common/enums/available-entities.enum';
+import { EntityNotFoundException } from '../../common/exceptions/entity-not-found.exception';
+import { DatabaseInternalException } from '../../common/exceptions/database-internal.exception';
 
 @Injectable()
 export class VendorsService {
@@ -49,10 +51,18 @@ export class VendorsService {
 			AvailableEntitiesEnum.Vendor
 		);
 
-		return repository
+		const candidate = await repository
 			.createQueryBuilder('vendor')
 			.where('vendor.id = :id', { id })
 			.getOne();
+
+		if (!candidate) {
+			throw new EntityNotFoundException(
+				`Vendor with given id=${id} not found`
+			);
+		}
+
+		return candidate;
 	}
 
 	async getVendorByCompanyName(
@@ -71,9 +81,8 @@ export class VendorsService {
 			.getOne();
 
 		if (!candidate) {
-			throw new HttpException(
-				`Vendor with given company_name=${company_name} not found`,
-				HttpStatus.NOT_FOUND
+			throw new EntityNotFoundException(
+				`Vendor with given company_name=${company_name} not found`
 			);
 		}
 
@@ -121,7 +130,7 @@ export class VendorsService {
 				throw err;
 			}
 
-			throw new HttpException(err.message, HttpStatus.BAD_REQUEST);
+			throw new DatabaseInternalException(err);
 		} finally {
 			await queryRunner.release();
 		}
@@ -176,7 +185,7 @@ export class VendorsService {
 				throw err;
 			}
 
-			throw new HttpException(err.message, HttpStatus.BAD_REQUEST);
+			throw new DatabaseInternalException(err);
 		} finally {
 			await queryRunner.release();
 		}
@@ -212,7 +221,7 @@ export class VendorsService {
 				throw err;
 			}
 
-			throw new HttpException(err.message, HttpStatus.BAD_REQUEST);
+			throw new DatabaseInternalException(err);
 		} finally {
 			await queryRunner.release();
 		}

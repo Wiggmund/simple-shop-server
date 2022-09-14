@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Role } from '../../roles/entity/role.entity';
 import { RolesService } from '../../roles/roles.service';
@@ -7,8 +7,9 @@ import { AddDeleteUserRoleDto } from '../dto/add-delete-user-role.dto';
 import { User } from '../entity/user.entity';
 import { UserIdType } from '../types/user-id.interface';
 import { UsersService } from './users.service';
-import { EntitiesService } from '../../../entities/entities.service';
+import { EntitiesService } from '../../entities.service';
 import { AvailableEntitiesEnum } from '../../../common/enums/available-entities.enum';
+import { EntityFieldsException } from '../../../common/exceptions/entity-fields.exception';
 
 @Injectable()
 export class UserRolesService {
@@ -49,17 +50,14 @@ export class UserRolesService {
 		);
 
 		const { id: roleId, value } =
-			await this.checkUserExistenseAndGetRoleOrFail(
+			await this.checkUserExistenceAndGetRoleOrFail(
 				userId,
 				dto.value,
 				manager
 			);
 
 		if (await this.doUserHaveRole(userId, value, manager)) {
-			throw new HttpException(
-				`User already has role [${value}]`,
-				HttpStatus.BAD_REQUEST
-			);
+			throw new EntityFieldsException(`User already has role [${value}]`);
 		}
 
 		await repository
@@ -83,7 +81,7 @@ export class UserRolesService {
 		);
 
 		const { id: roleId, value } =
-			await this.checkUserExistenseAndGetRoleOrFail(
+			await this.checkUserExistenceAndGetRoleOrFail(
 				userId,
 				dto.value,
 				manager
@@ -91,10 +89,7 @@ export class UserRolesService {
 
 		const doHaveRole = await this.doUserHaveRole(userId, value, manager);
 		if (!doHaveRole) {
-			throw new HttpException(
-				`User didn't have role [${value}]`,
-				HttpStatus.BAD_REQUEST
-			);
+			throw new EntityFieldsException(`User didn't have role [${value}]`);
 		}
 
 		await repository
@@ -106,16 +101,13 @@ export class UserRolesService {
 		return `Role [${value}] has been deleted for user with id=${userId}`;
 	}
 
-	private async checkUserExistenseAndGetRoleOrFail(
+	private async checkUserExistenceAndGetRoleOrFail(
 		userId: UserIdType,
 		value: string,
 		manager: EntityManager | null = null
 	): Promise<Role> {
-		const role = await this.rolesService.getRoleByValueOrFail(
-			value,
-			manager
-		);
-		await this.usersService.getUserByIdOrFail(userId, manager);
+		const role = await this.rolesService.getRoleByValue(value, manager);
+		await this.usersService.getUserById(userId, manager);
 
 		return role;
 	}

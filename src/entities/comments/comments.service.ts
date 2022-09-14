@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, Repository } from 'typeorm';
 
@@ -16,6 +16,8 @@ import { CommentId, CommentIdType } from './types/comment-id.interface';
 import { CommentRelatedEntities } from './types/comment-related-entities.interface';
 import { UserIdType } from '../users/types/user-id.interface';
 import { AvailableEntitiesEnum } from '../../common/enums/available-entities.enum';
+import { EntityNotFoundException } from '../../common/exceptions/entity-not-found.exception';
+import { DatabaseInternalException } from '../../common/exceptions/database-internal.exception';
 
 @Injectable()
 export class CommentsService {
@@ -47,10 +49,18 @@ export class CommentsService {
 			AvailableEntitiesEnum.Comment
 		);
 
-		return repository
+		const candidate = await repository
 			.createQueryBuilder('vendor')
 			.where('vendor.id = :id', { id })
 			.getOne();
+
+		if (!candidate) {
+			throw new EntityNotFoundException(
+				`Comment with given id=${id} not found`
+			);
+		}
+
+		return candidate;
 	}
 
 	async createComment(
@@ -116,7 +126,7 @@ export class CommentsService {
 				throw err;
 			}
 
-			throw new HttpException(err.message, HttpStatus.BAD_REQUEST);
+			throw new DatabaseInternalException(err);
 		} finally {
 			await queryRunner.release();
 		}
@@ -154,7 +164,7 @@ export class CommentsService {
 				throw err;
 			}
 
-			throw new HttpException(err.message, HttpStatus.BAD_REQUEST);
+			throw new DatabaseInternalException(err);
 		} finally {
 			await queryRunner.release();
 		}
@@ -190,7 +200,7 @@ export class CommentsService {
 				throw err;
 			}
 
-			throw new HttpException(err.message, HttpStatus.BAD_REQUEST);
+			throw new DatabaseInternalException(err);
 		} finally {
 			await queryRunner.release();
 		}

@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, FindOptionsWhere, Repository } from 'typeorm';
 
@@ -12,6 +12,8 @@ import { EntitiesService } from '../entities.service';
 import { RoleUniqueFields } from './types/role-unique-fields.interface';
 import { RoleId } from './types/role-id.interface';
 import { AvailableEntitiesEnum } from '../../common/enums/available-entities.enum';
+import { EntityNotFoundException } from '../../common/exceptions/entity-not-found.exception';
+import { DatabaseInternalException } from '../../common/exceptions/database-internal.exception';
 
 @Injectable()
 export class RolesService {
@@ -47,10 +49,18 @@ export class RolesService {
 			AvailableEntitiesEnum.Role
 		);
 
-		return repository
+		const candidate = await repository
 			.createQueryBuilder('role')
 			.where('role.id = :id', { id })
 			.getOne();
+
+		if (!candidate) {
+			throw new EntityNotFoundException(
+				`Role with given id=${id} not found`
+			);
+		}
+
+		return candidate;
 	}
 
 	async getRoleByValue(
@@ -63,22 +73,14 @@ export class RolesService {
 			AvailableEntitiesEnum.Role
 		);
 
-		return await repository
+		const candidate = await repository
 			.createQueryBuilder('role')
 			.where('role.value = :value', { value })
 			.getOne();
-	}
-
-	async getRoleByValueOrFail(
-		value: string,
-		manager: EntityManager | null = null
-	): Promise<Role> {
-		const candidate = await this.getRoleByValue(value, manager);
 
 		if (!candidate) {
-			throw new HttpException(
-				`Role with given value=${value} not found`,
-				HttpStatus.BAD_REQUEST
+			throw new EntityNotFoundException(
+				`Role with given value=${value} not found`
 			);
 		}
 
@@ -126,7 +128,7 @@ export class RolesService {
 				throw err;
 			}
 
-			throw new HttpException(err.message, HttpStatus.BAD_REQUEST);
+			throw new DatabaseInternalException(err);
 		} finally {
 			await queryRunner.release();
 		}
@@ -178,7 +180,7 @@ export class RolesService {
 				throw err;
 			}
 
-			throw new HttpException(err.message, HttpStatus.BAD_REQUEST);
+			throw new DatabaseInternalException(err);
 		} finally {
 			await queryRunner.release();
 		}
@@ -214,7 +216,7 @@ export class RolesService {
 				throw err;
 			}
 
-			throw new HttpException(err.message, HttpStatus.BAD_REQUEST);
+			throw new DatabaseInternalException(err);
 		} finally {
 			await queryRunner.release();
 		}

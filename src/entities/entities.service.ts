@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import {
 	DataSource,
 	EntityManager,
@@ -17,6 +17,9 @@ import { Attribute } from './attributes/entity/attribute.entity';
 import { ProductToAttribute } from './products/entity/product-to-attribute.entity';
 import { AvailableEntities } from '../common/types/available-entities.interface';
 import { TransactionKit } from '../common/types/transaction-kit.interface';
+import { MethodArgumentsException } from '../common/exceptions/method-arguments.exception';
+import { EntityNotFoundException } from '../common/exceptions/entity-not-found.exception';
+import { EntityFieldsException } from '../common/exceptions/entity-fields.exception';
 
 @Injectable()
 export class EntitiesService {
@@ -39,11 +42,10 @@ export class EntitiesService {
 				}
 			);
 
-			throw new HttpException(
+			throw new EntityNotFoundException(
 				`${entityName} with given [${findOptionItems.join(
 					', '
-				)}] fields not found`,
-				HttpStatus.NOT_FOUND
+				)}] fields not found`
 			);
 		}
 
@@ -62,9 +64,8 @@ export class EntitiesService {
 	): Repository<E> {
 		if (!manager) {
 			if (!repository) {
-				throw new HttpException(
-					`Didn't provide [repository] argument for ${this.getRepository.name}`,
-					HttpStatus.INTERNAL_SERVER_ERROR
+				throw new MethodArgumentsException(
+					`Didn't provide [repository] argument`
 				);
 			}
 
@@ -132,9 +133,8 @@ export class EntitiesService {
 		entityName: AvailableEntities
 	): Repository<E> {
 		if (!manager) {
-			throw new HttpException(
-				`Didn't provide [manager]  for ${this.getEntityRepository.name}`,
-				HttpStatus.INTERNAL_SERVER_ERROR
+			throw new MethodArgumentsException(
+				`Didn't provide [manager] argument`
 			);
 		}
 
@@ -214,11 +214,10 @@ export class EntitiesService {
 				candidate
 			);
 
-			throw new HttpException(
+			throw new EntityFieldsException(
 				`${entityName} with given [${duplicatedFields.join(
 					', '
-				)}] fields already exists`,
-				HttpStatus.BAD_REQUEST
+				)}] fields already exists`
 			);
 		}
 	}

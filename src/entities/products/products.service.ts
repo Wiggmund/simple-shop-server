@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { forwardRef, HttpException, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Express } from 'express';
 import { EntityManager, FindOptionsWhere, Repository } from 'typeorm';
@@ -32,6 +32,8 @@ import { IProductRelatedEntitiesIds } from './types/product-related-entities-ids
 
 import { TransactionsService } from '../transactions/transactions.service';
 import { AvailableEntitiesEnum } from '../../common/enums/available-entities.enum';
+import { EntityNotFoundException } from '../../common/exceptions/entity-not-found.exception';
+import { DatabaseInternalException } from '../../common/exceptions/database-internal.exception';
 
 @Injectable()
 export class ProductsService {
@@ -54,6 +56,8 @@ export class ProductsService {
 		private fileSystemService: FileSystemService,
 		private productToAttributeService: ProductToAttributeService,
 		private commentsService: CommentsService,
+
+		@Inject(forwardRef(() => TransactionsService))
 		private transactionsService: TransactionsService
 	) {}
 
@@ -79,10 +83,18 @@ export class ProductsService {
 			AvailableEntitiesEnum.Product
 		);
 
-		return repository
+		const candidate = await repository
 			.createQueryBuilder('product')
 			.where('product.id = :id', { id })
 			.getOne();
+
+		if (!candidate) {
+			throw new EntityNotFoundException(
+				`Product with given id=${id} not found`
+			);
+		}
+
+		return candidate;
 	}
 
 	async createProduct(
@@ -220,7 +232,7 @@ export class ProductsService {
 				throw err;
 			}
 
-			throw new HttpException(err.message, HttpStatus.BAD_REQUEST);
+			throw new DatabaseInternalException(err);
 		} finally {
 			await queryRunner.release();
 		}
@@ -275,7 +287,7 @@ export class ProductsService {
 				throw err;
 			}
 
-			throw new HttpException(err.message, HttpStatus.BAD_REQUEST);
+			throw new DatabaseInternalException(err);
 		} finally {
 			await queryRunner.release();
 		}
@@ -331,7 +343,7 @@ export class ProductsService {
 				throw err;
 			}
 
-			throw new HttpException(err.message, HttpStatus.BAD_REQUEST);
+			throw new DatabaseInternalException(err);
 		} finally {
 			await queryRunner.release();
 		}

@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, FindOptionsWhere, Repository } from 'typeorm';
 
@@ -12,6 +12,8 @@ import { EntitiesService } from '../entities.service';
 import { AttributeUniqueFields } from './types/attribute-unique-fields.interface';
 import { AttributeId } from './types/attribute-id.interface';
 import { AvailableEntitiesEnum } from '../../common/enums/available-entities.enum';
+import { EntityNotFoundException } from '../../common/exceptions/entity-not-found.exception';
+import { DatabaseInternalException } from '../../common/exceptions/database-internal.exception';
 
 @Injectable()
 export class AttributesService {
@@ -50,10 +52,18 @@ export class AttributesService {
 			AvailableEntitiesEnum.Attribute
 		);
 
-		return repository
+		const candidate = await repository
 			.createQueryBuilder('attribute')
 			.where('attribute.id = :id', { id })
 			.getOne();
+
+		if (!candidate) {
+			throw new EntityNotFoundException(
+				`Attribute with given id=${id} not found`
+			);
+		}
+
+		return candidate;
 	}
 
 	async getAttributeByName(
@@ -74,9 +84,8 @@ export class AttributesService {
 			.getOne();
 
 		if (!candidate) {
-			throw new HttpException(
-				`Attribute with given attribute_name=${attribute_name} not found`,
-				HttpStatus.NOT_FOUND
+			throw new EntityNotFoundException(
+				`Attribute with given attribute_name=${attribute_name} not found`
 			);
 		}
 
@@ -126,7 +135,7 @@ export class AttributesService {
 				throw err;
 			}
 
-			throw new HttpException(err.message, HttpStatus.BAD_REQUEST);
+			throw new DatabaseInternalException(err);
 		} finally {
 			await queryRunner.release();
 		}
@@ -181,7 +190,7 @@ export class AttributesService {
 				throw err;
 			}
 
-			throw new HttpException(err.message, HttpStatus.BAD_REQUEST);
+			throw new DatabaseInternalException(err);
 		} finally {
 			await queryRunner.release();
 		}
@@ -217,7 +226,7 @@ export class AttributesService {
 				throw err;
 			}
 
-			throw new HttpException(err.message, HttpStatus.BAD_REQUEST);
+			throw new DatabaseInternalException(err);
 		} finally {
 			await queryRunner.release();
 		}
