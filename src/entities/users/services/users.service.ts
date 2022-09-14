@@ -157,10 +157,7 @@ export class UsersService {
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
 		try {
-			const user = await this.entitiesService.isExist<User>(
-				[{ id }],
-				repository
-			);
+			const user = await this.getUserById(id, manager);
 
 			if (
 				this.entitiesService.doDtoHaveUniqueFields<UpdateUserDto>(
@@ -209,14 +206,10 @@ export class UsersService {
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
 		try {
-			const user = await this.entitiesService.isExist<User>(
-				[{ id }],
-				repository
-			);
+			const user = await this.getUserById(id, manager);
+
 			const { photosIds, commentsIds, transactionIds } =
 				await this.getRelatedEntitiesIds(id, repository);
-
-			console.log('photosIds', photosIds, photosIds.length);
 
 			await this.photosService.deleteManyPhotosByIds(photosIds, manager);
 

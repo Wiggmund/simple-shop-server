@@ -153,10 +153,7 @@ export class AttributesService {
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
 		try {
-			const attribute = await this.entitiesService.isExist<Attribute>(
-				[{ id }],
-				repository
-			);
+			const attribute = await this.getAttributeById(id, manager);
 
 			if (
 				this.entitiesService.doDtoHaveUniqueFields<UpdateAttributeDto>(
@@ -197,7 +194,7 @@ export class AttributesService {
 	}
 
 	async deleteAttribute(id: number): Promise<Attribute> {
-		const { queryRunner, repository } =
+		const { queryRunner, repository, manager } =
 			this.entitiesService.getTransactionKit<Attribute>(
 				AvailableEntitiesEnum.Attribute
 			);
@@ -205,10 +202,7 @@ export class AttributesService {
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
 		try {
-			const attribute = await this.entitiesService.isExist<Attribute>(
-				[{ id }],
-				repository
-			);
+			const attribute = await this.getAttributeById(id, manager);
 
 			await repository
 				.createQueryBuilder()

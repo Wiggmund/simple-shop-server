@@ -97,10 +97,7 @@ export class PhotosService {
 			AvailableEntitiesEnum.Photo
 		);
 
-		const photo = await this.entitiesService.isExist<Photo>(
-			[{ id }],
-			this.photoRepository
-		);
+		const photo = await this.getPhotoById(id, manager);
 
 		this.photoFilesService.deletePhotoFile(photo);
 

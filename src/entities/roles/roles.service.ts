@@ -143,10 +143,7 @@ export class RolesService {
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
 		try {
-			const role = await this.entitiesService.isExist<Role>(
-				[{ id }],
-				repository
-			);
+			const role = await this.getRoleById(id, manager);
 
 			if (
 				this.entitiesService.doDtoHaveUniqueFields<UpdateRoleDto>(
@@ -187,7 +184,7 @@ export class RolesService {
 	}
 
 	async deleteRole(id: number): Promise<Role> {
-		const { queryRunner, repository } =
+		const { queryRunner, repository, manager } =
 			this.entitiesService.getTransactionKit<Role>(
 				AvailableEntitiesEnum.Role
 			);
@@ -195,10 +192,7 @@ export class RolesService {
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
 		try {
-			const role = await this.entitiesService.isExist<Role>(
-				[{ id }],
-				repository
-			);
+			const role = await this.getRoleById(id, manager);
 
 			await repository
 				.createQueryBuilder()

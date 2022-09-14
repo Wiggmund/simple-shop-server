@@ -136,10 +136,16 @@ export class TransactionsService {
 		try {
 			const { userId, productId } = transactionDto;
 
-			await this.entitiesService.isExist<Transaction>(
-				[{ id }],
-				repository
-			);
+			const isTransaction =
+				await this.entitiesService.isExist<Transaction>(repository, {
+					id
+				});
+			if (!isTransaction) {
+				throw new EntityNotFoundException(
+					`Transaction with given id=${id} not found`
+				);
+			}
+
 			await this.getUserAndProductByIdOrFail(userId, productId, manager);
 
 			await repository
@@ -170,7 +176,7 @@ export class TransactionsService {
 	}
 
 	async deleteTransaction(id: number): Promise<Transaction> {
-		const { queryRunner, repository } =
+		const { queryRunner, repository, manager } =
 			this.entitiesService.getTransactionKit<Transaction>(
 				AvailableEntitiesEnum.Transaction
 			);
@@ -178,10 +184,7 @@ export class TransactionsService {
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
 		try {
-			const transaction = await this.entitiesService.isExist<Transaction>(
-				[{ id }],
-				repository
-			);
+			const transaction = await this.getTransactionById(id, manager);
 
 			await repository
 				.createQueryBuilder()

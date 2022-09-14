@@ -148,10 +148,7 @@ export class VendorsService {
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
 		try {
-			const vendor = await this.entitiesService.isExist<Vendor>(
-				[{ id }],
-				repository
-			);
+			const vendor = await this.getVendorById(id, manager);
 
 			if (
 				this.entitiesService.doDtoHaveUniqueFields<UpdateVendorDto>(
@@ -192,7 +189,7 @@ export class VendorsService {
 	}
 
 	async deleteVendor(id: number): Promise<Vendor> {
-		const { queryRunner, repository } =
+		const { queryRunner, repository, manager } =
 			this.entitiesService.getTransactionKit<Vendor>(
 				AvailableEntitiesEnum.Vendor
 			);
@@ -200,10 +197,7 @@ export class VendorsService {
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
 		try {
-			const vendor = await this.entitiesService.isExist<Vendor>(
-				[{ id }],
-				repository
-			);
+			const vendor = await this.getVendorById(id, manager);
 
 			await repository
 				.createQueryBuilder()

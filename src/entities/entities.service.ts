@@ -18,7 +18,6 @@ import { ProductToAttribute } from './products/entity/product-to-attribute.entit
 import { AvailableEntities } from '../common/types/available-entities.interface';
 import { TransactionKit } from '../common/types/transaction-kit.interface';
 import { MethodArgumentsException } from '../common/exceptions/method-arguments.exception';
-import { EntityNotFoundException } from '../common/exceptions/entity-not-found.exception';
 import { EntityFieldsException } from '../common/exceptions/entity-fields.exception';
 
 @Injectable()
@@ -26,30 +25,18 @@ export class EntitiesService {
 	constructor(private dataSource: DataSource) {}
 
 	async isExist<E>(
-		findOptions: FindOptionsWhere<E>[],
 		repository: Repository<E>,
-		relations = null,
-		entityName = 'Entity'
-	): Promise<E> {
-		const candidate = relations
-			? await repository.findOne({ where: findOptions, relations })
-			: await repository.findOne({ where: findOptions });
+		keyValue: Partial<E>
+	): Promise<boolean> {
+		const entityName = repository.metadata.tableName;
+		const [field, value] = Object.entries(keyValue)[0];
+		const candidate = await repository
+			.createQueryBuilder(entityName)
+			.select(`${entityName}.${field}`)
+			.where(`${entityName}.${field} = :value`, { value })
+			.getOne();
 
-		if (!candidate) {
-			const findOptionItems = findOptions.map(
-				(item: Record<string, any>) => {
-					return Object.keys(item)[0];
-				}
-			);
-
-			throw new EntityNotFoundException(
-				`${entityName} with given [${findOptionItems.join(
-					', '
-				)}] fields not found`
-			);
-		}
-
-		return candidate;
+		return candidate ? true : false;
 	}
 
 	doDtoHaveUniqueFields<D>(dto: D, uniqueFields: string[]): boolean {
@@ -128,7 +115,7 @@ export class EntitiesService {
 	}
 
 	// TODO: Rewrite using generics without switch...case
-	private getEntityRepository<E>(
+	getEntityRepository<E>(
 		manager: EntityManager,
 		entityName: AvailableEntities
 	): Repository<E> {

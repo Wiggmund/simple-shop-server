@@ -77,15 +77,24 @@ export class CommentsService {
 			const commentDto = new CreateCommentDto(commentDataDto);
 			const { userId, productId } = commentDataDto;
 
-			await this.entitiesService.isExist<User>(
-				[{ id: userId }],
-				manager.getRepository(User)
+			const isUser = await this.entitiesService.isExist<User>(
+				manager.getRepository(User),
+				{ id: userId }
+			);
+			const isProduct = await this.entitiesService.isExist<Product>(
+				manager.getRepository(Product),
+				{ id: productId }
 			);
 
-			await this.entitiesService.isExist<Product>(
-				[{ id: productId }],
-				manager.getRepository(Product)
-			);
+			if (!isUser || !isProduct) {
+				const { entityName, id } = isUser
+					? { entityName: 'Product', id: productId }
+					: { entityName: 'User', id: userId };
+
+				throw new EntityNotFoundException(
+					`${entityName} with given id=${id} not found`
+				);
+			}
 
 			const commentId = (
 				(
@@ -144,7 +153,15 @@ export class CommentsService {
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
 		try {
-			await this.entitiesService.isExist<Comment>([{ id }], repository);
+			const isComment = await this.entitiesService.isExist<Comment>(
+				manager.getRepository(Comment),
+				{ id }
+			);
+			if (isComment) {
+				throw new EntityNotFoundException(
+					`Comment with given id=${id} not found`
+				);
+			}
 
 			await repository
 				.createQueryBuilder()
@@ -171,7 +188,7 @@ export class CommentsService {
 	}
 
 	async deleteComment(id: number): Promise<Comment> {
-		const { queryRunner, repository } =
+		const { queryRunner, repository, manager } =
 			this.entitiesService.getTransactionKit<Comment>(
 				AvailableEntitiesEnum.Comment
 			);
@@ -179,10 +196,7 @@ export class CommentsService {
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
 		try {
-			const comment = await this.entitiesService.isExist<Comment>(
-				[{ id }],
-				repository
-			);
+			const comment = await this.getCommentById(id, manager);
 
 			await repository
 				.createQueryBuilder()

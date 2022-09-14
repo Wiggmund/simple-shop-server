@@ -149,10 +149,7 @@ export class CategoriesService {
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
 		try {
-			const category = await this.entitiesService.isExist<Category>(
-				[{ id }],
-				repository
-			);
+			const category = await this.getCategoryById(id, manager);
 
 			if (
 				this.entitiesService.doDtoHaveUniqueFields<UpdateCategoryDto>(
@@ -193,7 +190,7 @@ export class CategoriesService {
 	}
 
 	async deleteCategory(id: number): Promise<Category> {
-		const { queryRunner, repository } =
+		const { queryRunner, repository, manager } =
 			this.entitiesService.getTransactionKit<Category>(
 				AvailableEntitiesEnum.Category
 			);
@@ -201,10 +198,7 @@ export class CategoriesService {
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
 		try {
-			const category = await this.entitiesService.isExist<Category>(
-				[{ id }],
-				repository
-			);
+			const category = await this.getCategoryById(id, manager);
 
 			await repository
 				.createQueryBuilder()

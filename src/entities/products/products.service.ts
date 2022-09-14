@@ -250,10 +250,7 @@ export class ProductsService {
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
 		try {
-			const product = await this.entitiesService.isExist<Product>(
-				[{ id }],
-				repository
-			);
+			const product = await this.getProductById(id, manager);
 
 			if (
 				this.entitiesService.doDtoHaveUniqueFields<UpdateProductDto>(
@@ -302,10 +299,7 @@ export class ProductsService {
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
 		try {
-			const product = await this.entitiesService.isExist<Product>(
-				[{ id }],
-				repository
-			);
+			const product = await this.getProductById(id, manager);
 			const { photosIds, commentsIds, transactionIds } =
 				await this.getRelatedEntitiesIds(id, repository);
 
