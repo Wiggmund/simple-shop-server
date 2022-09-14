@@ -37,6 +37,7 @@ import {
 import { IProductRelatedEntitiesIds } from './types/product-related-entities-ids.interface';
 
 import { TransactionsService } from '../transactions/transactions.service';
+import { AvailableEntitiesEnum } from '../../common/enums/available-entities.enum';
 
 @Injectable()
 export class ProductsService {
@@ -66,7 +67,12 @@ export class ProductsService {
 	async getAllProducts(
 		manager: EntityManager | null = null
 	): Promise<Product[]> {
-		const repository = this.getRepository(manager);
+		const repository = this.entitiesService.getRepository(
+			manager,
+			this.productRepository,
+			AvailableEntitiesEnum.Product
+		);
+
 		return repository.createQueryBuilder('product').getMany();
 	}
 
@@ -74,7 +80,12 @@ export class ProductsService {
 		id: number,
 		manager: EntityManager | null = null
 	): Promise<Product> {
-		const repository = this.getRepository(manager);
+		const repository = this.entitiesService.getRepository(
+			manager,
+			this.productRepository,
+			AvailableEntitiesEnum.Product
+		);
+
 		return repository
 			.createQueryBuilder('product')
 			.where('product.id = :id', { id })
@@ -342,16 +353,6 @@ export class ProductsService {
 			findOptions,
 			'Product'
 		);
-	}
-
-	private getRepository(
-		manager: EntityManager | null = null
-	): Repository<Product> {
-		const repository = manager
-			? manager.getRepository(Product)
-			: this.productRepository;
-
-		return repository;
 	}
 
 	private getQueryRunnerAndRepositoryAndManager(): TransactionKit<Product> {

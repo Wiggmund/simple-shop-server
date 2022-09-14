@@ -11,6 +11,7 @@ import { EntitiesService } from '../entities.service';
 import { PhotoFilesService } from './photo-files.service';
 
 import { PhotoId, PhotoIdType } from './types/photo-id.interface';
+import { AvailableEntitiesEnum } from '../../common/enums/available-entities.enum';
 
 @Injectable()
 export class PhotosService {
@@ -21,7 +22,12 @@ export class PhotosService {
 	) {}
 
 	async getAllPhotos(manager: EntityManager | null = null): Promise<Photo[]> {
-		const repository = this.getRepository(manager);
+		const repository = this.entitiesService.getRepository(
+			manager,
+			this.photoRepository,
+			AvailableEntitiesEnum.Photo
+		);
+
 		return repository.createQueryBuilder('photo').getMany();
 	}
 
@@ -29,7 +35,11 @@ export class PhotosService {
 		id: number,
 		manager: EntityManager | null = null
 	): Promise<Photo> {
-		const repository = this.getRepository(manager);
+		const repository = this.entitiesService.getRepository(
+			manager,
+			this.photoRepository,
+			AvailableEntitiesEnum.Photo
+		);
 
 		return repository
 			.createQueryBuilder('photo')
@@ -41,7 +51,12 @@ export class PhotosService {
 		file: Express.Multer.File,
 		manager: EntityManager | null = null
 	): Promise<Photo> {
-		const repository = this.getRepository(manager);
+		const repository = this.entitiesService.getRepository(
+			manager,
+			this.photoRepository,
+			AvailableEntitiesEnum.Photo
+		);
+
 		const photoDto = new CreatePhotoDto(file);
 
 		const photoId = (
@@ -67,7 +82,11 @@ export class PhotosService {
 		id: number,
 		manager: EntityManager | null = null
 	): Promise<Photo> {
-		const repository = this.getRepository(manager);
+		const repository = this.entitiesService.getRepository(
+			manager,
+			this.photoRepository,
+			AvailableEntitiesEnum.Photo
+		);
 
 		const photo = await this.entitiesService.isExist<Photo>(
 			[{ id }],
@@ -90,7 +109,11 @@ export class PhotosService {
 		ids: PhotoIdType[],
 		manager: EntityManager | null = null
 	): Promise<void> {
-		const repository = this.getRepository(manager);
+		const repository = this.entitiesService.getRepository(
+			manager,
+			this.photoRepository,
+			AvailableEntitiesEnum.Photo
+		);
 
 		if (ids.length > 0) {
 			const photos = await repository
@@ -108,15 +131,5 @@ export class PhotosService {
 				.where('id IN (:...ids)', { ids })
 				.execute();
 		}
-	}
-
-	private getRepository(
-		manager: EntityManager | null = null
-	): Repository<Photo> {
-		const repository = manager
-			? manager.getRepository(Photo)
-			: this.photoRepository;
-
-		return repository;
 	}
 }

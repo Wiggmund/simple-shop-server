@@ -16,6 +16,7 @@ import { TransactionKit } from '../../common/types/transaction-kit.interface';
 import { CommentId, CommentIdType } from './types/comment-id.interface';
 import { CommentRelatedEntities } from './types/comment-related-entities.interface';
 import { UserIdType } from '../users/types/user-id.interface';
+import { AvailableEntitiesEnum } from '../../common/enums/available-entities.enum';
 
 @Injectable()
 export class CommentsService {
@@ -29,7 +30,12 @@ export class CommentsService {
 	async getAllComments(
 		manager: EntityManager | null = null
 	): Promise<Comment[]> {
-		const repository = this.getRepository(manager);
+		const repository = this.entitiesService.getRepository(
+			manager,
+			this.commentRepository,
+			AvailableEntitiesEnum.Comment
+		);
+
 		return repository.createQueryBuilder('comment').getMany();
 	}
 
@@ -37,7 +43,11 @@ export class CommentsService {
 		id: number,
 		manager: EntityManager | null = null
 	): Promise<Comment> {
-		const repository = this.getRepository(manager);
+		const repository = this.entitiesService.getRepository(
+			manager,
+			this.commentRepository,
+			AvailableEntitiesEnum.Comment
+		);
 
 		return repository
 			.createQueryBuilder('vendor')
@@ -186,7 +196,11 @@ export class CommentsService {
 		ids: CommentIdType[],
 		manager: EntityManager | null = null
 	): Promise<void> {
-		const repository = this.getRepository(manager);
+		const repository = this.entitiesService.getRepository(
+			manager,
+			this.commentRepository,
+			AvailableEntitiesEnum.Comment
+		);
 
 		switch (relatedEntity) {
 			case 'product':
@@ -227,15 +241,5 @@ export class CommentsService {
 		const repository = manager.getRepository(Comment);
 
 		return { queryRunner, repository, manager };
-	}
-
-	private getRepository(
-		manager: EntityManager | null = null
-	): Repository<Comment> {
-		const repository = manager
-			? manager.getRepository(Comment)
-			: this.commentRepository;
-
-		return repository;
 	}
 }

@@ -19,6 +19,7 @@ import { ProductIdType } from '../products/types/product-id.interface';
 import { TransactionRelatedEntities } from './types/transaction-related-entities.interface';
 
 import { EntitiesService } from '../entities.service';
+import { AvailableEntitiesEnum } from '../../common/enums/available-entities.enum';
 
 @Injectable()
 export class TransactionsService {
@@ -32,7 +33,12 @@ export class TransactionsService {
 	async getAllTransactions(
 		manager: EntityManager | null = null
 	): Promise<Transaction[]> {
-		const repository = this.getRepository(manager);
+		const repository = this.entitiesService.getRepository(
+			manager,
+			this.transactionRepository,
+			AvailableEntitiesEnum.Transaction
+		);
+
 		return repository.createQueryBuilder('transaction').getMany();
 	}
 
@@ -40,7 +46,11 @@ export class TransactionsService {
 		id: number,
 		manager: EntityManager | null = null
 	): Promise<Transaction> {
-		const repository = this.getRepository(manager);
+		const repository = this.entitiesService.getRepository(
+			manager,
+			this.transactionRepository,
+			AvailableEntitiesEnum.Transaction
+		);
 
 		return repository
 			.createQueryBuilder('transaction')
@@ -177,7 +187,11 @@ export class TransactionsService {
 		ids: TransactionIdType[],
 		manager: EntityManager | null = null
 	): Promise<void> {
-		const repository = this.getRepository(manager);
+		const repository = this.entitiesService.getRepository(
+			manager,
+			this.transactionRepository,
+			AvailableEntitiesEnum.Transaction
+		);
 
 		switch (relatedEntity) {
 			case 'product':
@@ -218,16 +232,6 @@ export class TransactionsService {
 		const repository = manager.getRepository(Transaction);
 
 		return { queryRunner, repository, manager };
-	}
-
-	private getRepository(
-		manager: EntityManager | null = null
-	): Repository<Transaction> {
-		const repository = manager
-			? manager.getRepository(Transaction)
-			: this.transactionRepository;
-
-		return repository;
 	}
 
 	private async getUserAndProductByIdOrFail(

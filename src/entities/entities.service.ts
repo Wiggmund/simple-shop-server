@@ -1,61 +1,19 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { FindOptionsWhere, Repository } from 'typeorm';
+import { EntityManager, FindOptionsWhere, Repository } from 'typeorm';
+import { Vendor } from './vendors/entity/vendor.entity';
+import { User } from './users/entity/user.entity';
+import { Transaction } from './transactions/entity/transaction.entity';
+import { Role } from './roles/entity/role.entity';
+import { Product } from './products/entity/product.entity';
+import { Photo } from './photos/entity/photo.entity';
+import { Comment } from './comments/entity/comment.entity';
+import { Category } from './categories/entity/category.entity';
+import { Attribute } from './attributes/entity/attribute.entity';
+import { ProductToAttribute } from './products/entity/product-to-attribute.entity';
+import { AvailableEntities } from '../common/types/available-entities.interface';
 
 @Injectable()
 export class EntitiesService {
-	async checkForDublicates2<D, E>(
-		dto: D,
-		uniqueFieldsToCheck: FindOptionsWhere<E>[], // Used just for getting keys
-		repository: Repository<E>,
-		entityName = 'Entity',
-		filter: FindOptionsWhere<E>[] = []
-	): Promise<E> {
-		const findOptions: FindOptionsWhere<E>[] = uniqueFieldsToCheck.map(
-			(item) => {
-				const findOptionItem = {};
-				Object.keys(item).forEach((key) => {
-					dto[key]
-						? (findOptionItem[key] = dto[key])
-						: (findOptionItem[key] = item[key]);
-				});
-				return findOptionItem;
-			}
-		);
-
-		console.log(
-			'USER',
-			await repository.findOne({
-				where: filter
-			})
-		);
-		let candidate;
-		if (findOptions.length > 0) {
-			candidate = await repository.findOne({
-				where: findOptions
-			});
-		}
-
-		if (candidate) {
-			const dublicatedFields = this.getDublicatedFields<E>(
-				findOptions,
-				candidate
-			);
-			throw new HttpException(
-				`${entityName} with given [${dublicatedFields.join(
-					', '
-				)}] fields already exists`,
-				HttpStatus.BAD_REQUEST
-			);
-		}
-
-		return candidate;
-	}
-
-	doDtoHaveUniqueFields<D>(dto: D, uniqueFields: string[]): boolean {
-		const dtoKeys = Object.keys(dto);
-		return dtoKeys.some((key) => uniqueFields.includes(key));
-	}
-
 	async checkForDublicates<E>(
 		repository: Repository<E>,
 		findOptions: FindOptionsWhere<E>[],
@@ -141,6 +99,47 @@ export class EntitiesService {
 		});
 
 		return findOptions;
+	}
+
+	doDtoHaveUniqueFields<D>(dto: D, uniqueFields: string[]): boolean {
+		const dtoKeys = Object.keys(dto);
+		return dtoKeys.some((key) => uniqueFields.includes(key));
+	}
+
+	// TODO: Rewrite using generics without switch...case
+	getRepository<E>(
+		manager: EntityManager | null = null,
+		repository: Repository<E>,
+		entityName: AvailableEntities
+	): Repository<E> {
+		if (!manager) {
+			return repository;
+		}
+
+		switch (entityName) {
+			case 'Vendor':
+				return manager.getRepository(Vendor) as Repository<E>;
+			case 'User':
+				return manager.getRepository(User) as Repository<E>;
+			case 'Transaction':
+				return manager.getRepository(Transaction) as Repository<E>;
+			case 'Role':
+				return manager.getRepository(Role) as Repository<E>;
+			case 'Product':
+				return manager.getRepository(Product) as Repository<E>;
+			case 'ProductToAttribute':
+				return manager.getRepository(
+					ProductToAttribute
+				) as Repository<E>;
+			case 'Photo':
+				return manager.getRepository(Photo) as Repository<E>;
+			case 'Comment':
+				return manager.getRepository(Comment) as Repository<E>;
+			case 'Category':
+				return manager.getRepository(Category) as Repository<E>;
+			case 'Attribute':
+				return manager.getRepository(Attribute) as Repository<E>;
+		}
 	}
 
 	private getDublicatedFields<E>(

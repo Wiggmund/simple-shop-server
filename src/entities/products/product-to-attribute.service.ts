@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EntityManager, FindOptionsWhere, Repository } from 'typeorm';
+import { AvailableEntitiesEnum } from '../../common/enums/available-entities.enum';
+import { EntityManager, Repository } from 'typeorm';
+import { EntitiesService } from '../entities.service';
 import { CreateProductToAttributeDto } from './dto/create-product-to-attribute.dto';
 import { ProductToAttribute } from './entity/product-to-attribute.entity';
 import { ProductIdType } from './types/product-id.interface';
@@ -10,14 +12,19 @@ import { ProductToAttributeId } from './types/product-to-attribute-id.interface'
 export class ProductToAttributeService {
 	constructor(
 		@InjectRepository(ProductToAttribute)
-		private productToAttributeRepository: Repository<ProductToAttribute>
+		private productToAttributeRepository: Repository<ProductToAttribute>,
+		private entitiesService: EntitiesService
 	) {}
 
 	async createProductToAttributeRecord(
 		dto: CreateProductToAttributeDto,
 		manager: EntityManager | null = null
 	): Promise<ProductToAttributeId> {
-		const repository = this.getRepository(manager);
+		const repository = this.entitiesService.getRepository(
+			manager,
+			this.productToAttributeRepository,
+			AvailableEntitiesEnum.ProductToAttribute
+		);
 
 		const recordId = (
 			(
@@ -37,7 +44,11 @@ export class ProductToAttributeService {
 		productId: ProductIdType,
 		manager: EntityManager | null = null
 	): Promise<void> {
-		const repository = this.getRepository(manager);
+		const repository = this.entitiesService.getRepository(
+			manager,
+			this.productToAttributeRepository,
+			AvailableEntitiesEnum.ProductToAttribute
+		);
 
 		await repository
 			.createQueryBuilder()
@@ -45,15 +56,5 @@ export class ProductToAttributeService {
 			.from(ProductToAttribute)
 			.where('productId = :productId', { productId })
 			.execute();
-	}
-
-	private getRepository(
-		manager: EntityManager | null = null
-	): Repository<ProductToAttribute> {
-		const repository = manager
-			? manager.getRepository(ProductToAttribute)
-			: this.productToAttributeRepository;
-
-		return repository;
 	}
 }

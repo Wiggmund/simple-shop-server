@@ -26,6 +26,7 @@ import { PhotosService } from '../../photos/photos.service';
 import { FileSystemService } from '../../../file-system/file-system.service';
 import { CommentsService } from '../../comments/comments.service';
 import { TransactionsService } from '../../transactions/transactions.service';
+import { AvailableEntitiesEnum } from '../../../common/enums/available-entities.enum';
 
 @Injectable()
 export class UsersService {
@@ -48,7 +49,12 @@ export class UsersService {
 	) {}
 
 	async getAllUsers(manager: EntityManager | null = null): Promise<User[]> {
-		const repository = this.getRepository(manager);
+		const repository = this.entitiesService.getRepository(
+			manager,
+			this.userRepository,
+			AvailableEntitiesEnum.User
+		);
+
 		return repository.createQueryBuilder('user').getMany();
 	}
 
@@ -56,7 +62,11 @@ export class UsersService {
 		id: number,
 		manager: EntityManager | null = null
 	): Promise<User> {
-		const repository = this.getRepository(manager);
+		const repository = this.entitiesService.getRepository(
+			manager,
+			this.userRepository,
+			AvailableEntitiesEnum.User
+		);
 
 		return repository
 			.createQueryBuilder('user')
@@ -266,16 +276,6 @@ export class UsersService {
 		const repository = manager.getRepository(User);
 
 		return { queryRunner, repository, manager };
-	}
-
-	private getRepository(
-		manager: EntityManager | null = null
-	): Repository<User> {
-		const repository = manager
-			? manager.getRepository(User)
-			: this.userRepository;
-
-		return repository;
 	}
 
 	private async getRelatedEntitiesIds(

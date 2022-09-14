@@ -17,6 +17,7 @@ import { EntitiesService } from '../entities.service';
 import { AttributeUniqueFields } from './types/attribute-unique-fields.interface';
 import { TransactionKit } from '../../common/types/transaction-kit.interface';
 import { AttributeId } from './types/attribute-id.interface';
+import { AvailableEntitiesEnum } from '../../common/enums/available-entities.enum';
 
 @Injectable()
 export class AttributesService {
@@ -37,7 +38,12 @@ export class AttributesService {
 	async getAllAttributes(
 		manager: EntityManager | null = null
 	): Promise<Attribute[]> {
-		const repository = this.getRepository(manager);
+		const repository = this.entitiesService.getRepository(
+			manager,
+			this.attributeRepository,
+			AvailableEntitiesEnum.Attribute
+		);
+
 		return repository.createQueryBuilder('attribute').getMany();
 	}
 
@@ -45,7 +51,11 @@ export class AttributesService {
 		id: number,
 		manager: EntityManager | null = null
 	): Promise<Attribute> {
-		const repository = this.getRepository(manager);
+		const repository = this.entitiesService.getRepository(
+			manager,
+			this.attributeRepository,
+			AvailableEntitiesEnum.Attribute
+		);
 
 		return repository
 			.createQueryBuilder('attribute')
@@ -57,7 +67,11 @@ export class AttributesService {
 		attribute_name: string,
 		manager: EntityManager | null = null
 	): Promise<Attribute> {
-		const repository = this.getRepository(manager);
+		const repository = this.entitiesService.getRepository(
+			manager,
+			this.attributeRepository,
+			AvailableEntitiesEnum.Attribute
+		);
 
 		const candidate = await repository
 			.createQueryBuilder('attribute')
@@ -223,16 +237,6 @@ export class AttributesService {
 			findOptions,
 			'Attribute'
 		);
-	}
-
-	private getRepository(
-		manager: EntityManager | null = null
-	): Repository<Attribute> {
-		const repository = manager
-			? manager.getRepository(Attribute)
-			: this.attributeRepository;
-
-		return repository;
 	}
 
 	private getQueryRunnerAndRepository(): TransactionKit<Attribute> {

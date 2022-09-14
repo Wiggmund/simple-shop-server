@@ -17,6 +17,7 @@ import { EntitiesService } from '../entities.service';
 import { CategoryUniqueFields } from './types/category-unique-fields.interface';
 import { TransactionKit } from '../../common/types/transaction-kit.interface';
 import { CategoryId } from './types/category-id.interface';
+import { AvailableEntitiesEnum } from '../../common/enums/available-entities.enum';
 
 @Injectable()
 export class CategoriesService {
@@ -37,7 +38,12 @@ export class CategoriesService {
 	async getAllCategories(
 		manager: EntityManager | null = null
 	): Promise<Category[]> {
-		const repository = this.getRepository(manager);
+		const repository = this.entitiesService.getRepository(
+			manager,
+			this.categoryRepository,
+			AvailableEntitiesEnum.Category
+		);
+
 		return repository.createQueryBuilder('category').getMany();
 	}
 
@@ -45,7 +51,11 @@ export class CategoriesService {
 		id: number,
 		manager: EntityManager | null = null
 	): Promise<Category> {
-		const repository = this.getRepository(manager);
+		const repository = this.entitiesService.getRepository(
+			manager,
+			this.categoryRepository,
+			AvailableEntitiesEnum.Category
+		);
 
 		return repository
 			.createQueryBuilder('category')
@@ -57,7 +67,11 @@ export class CategoriesService {
 		category_name: string,
 		manager: EntityManager | null = null
 	): Promise<Category> {
-		const repository = this.getRepository(manager);
+		const repository = this.entitiesService.getRepository(
+			manager,
+			this.categoryRepository,
+			AvailableEntitiesEnum.Category
+		);
 
 		const candidate = await repository
 			.createQueryBuilder('category')
@@ -219,16 +233,6 @@ export class CategoriesService {
 			findOptions,
 			'Category'
 		);
-	}
-
-	private getRepository(
-		manager: EntityManager | null = null
-	): Repository<Category> {
-		const repository = manager
-			? manager.getRepository(Category)
-			: this.categoryRepository;
-
-		return repository;
 	}
 
 	private getQueryRunnerAndRepository(): TransactionKit<Category> {

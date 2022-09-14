@@ -7,6 +7,8 @@ import { AddDeleteUserRoleDto } from '../dto/add-delete-user-role.dto';
 import { User } from '../entity/user.entity';
 import { UserIdType } from '../types/user-id.interface';
 import { UsersService } from './users.service';
+import { EntitiesService } from '../../../entities/entities.service';
+import { AvailableEntitiesEnum } from '../../../common/enums/available-entities.enum';
 
 @Injectable()
 export class UserRolesService {
@@ -14,6 +16,7 @@ export class UserRolesService {
 		@InjectRepository(User)
 		private userRepository: Repository<User>,
 		private rolesService: RolesService,
+		private entitiesService: EntitiesService,
 		private usersService: UsersService
 	) {}
 
@@ -21,7 +24,11 @@ export class UserRolesService {
 		userId: UserIdType,
 		manager: EntityManager | null = null
 	): Promise<Role[]> {
-		const repository = this.getRepository(manager);
+		const repository = this.entitiesService.getRepository(
+			manager,
+			this.userRepository,
+			AvailableEntitiesEnum.User
+		);
 
 		return repository
 			.createQueryBuilder()
@@ -35,7 +42,12 @@ export class UserRolesService {
 		dto: AddDeleteUserRoleDto,
 		manager: EntityManager | null = null
 	): Promise<string> {
-		const repository = this.getRepository(manager);
+		const repository = this.entitiesService.getRepository(
+			manager,
+			this.userRepository,
+			AvailableEntitiesEnum.User
+		);
+
 		const { id: roleId, value } =
 			await this.checkUserExistenseAndGetRoleOrFail(
 				userId,
@@ -64,7 +76,12 @@ export class UserRolesService {
 		dto: AddDeleteUserRoleDto,
 		manager: EntityManager | null = null
 	): Promise<string> {
-		const repository = this.getRepository(manager);
+		const repository = this.entitiesService.getRepository(
+			manager,
+			this.userRepository,
+			AvailableEntitiesEnum.User
+		);
+
 		const { id: roleId, value } =
 			await this.checkUserExistenseAndGetRoleOrFail(
 				userId,
@@ -87,16 +104,6 @@ export class UserRolesService {
 			.remove(roleId);
 
 		return `Role [${value}] has been deleted for user with id=${userId}`;
-	}
-
-	private getRepository(
-		manager: EntityManager | null = null
-	): Repository<User> {
-		const repository = manager
-			? manager.getRepository(User)
-			: this.userRepository;
-
-		return repository;
 	}
 
 	private async checkUserExistenseAndGetRoleOrFail(

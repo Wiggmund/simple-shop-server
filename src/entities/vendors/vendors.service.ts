@@ -17,6 +17,7 @@ import { TransactionKit } from '../../common/types/transaction-kit.interface';
 import { IVendorID } from './types/vendor-id.interface';
 
 import { EntitiesService } from '../entities.service';
+import { AvailableEntitiesEnum } from '../../common/enums/available-entities.enum';
 
 @Injectable()
 export class VendorsService {
@@ -36,7 +37,12 @@ export class VendorsService {
 	async getAllVendors(
 		manager: EntityManager | null = null
 	): Promise<Vendor[]> {
-		const repository = this.getRepository(manager);
+		const repository = this.entitiesService.getRepository(
+			manager,
+			this.vendorRepository,
+			AvailableEntitiesEnum.Vendor
+		);
+
 		return repository.createQueryBuilder('vendor').getMany();
 	}
 
@@ -44,7 +50,11 @@ export class VendorsService {
 		id: number,
 		manager: EntityManager | null = null
 	): Promise<Vendor> {
-		const repository = this.getRepository(manager);
+		const repository = this.entitiesService.getRepository(
+			manager,
+			this.vendorRepository,
+			AvailableEntitiesEnum.Vendor
+		);
 
 		return repository
 			.createQueryBuilder('vendor')
@@ -56,7 +66,11 @@ export class VendorsService {
 		company_name: string,
 		manager: EntityManager | null = null
 	): Promise<Vendor> {
-		const repository = this.getRepository(manager);
+		const repository = this.entitiesService.getRepository(
+			manager,
+			this.vendorRepository,
+			AvailableEntitiesEnum.Vendor
+		);
 
 		const candidate = await repository
 			.createQueryBuilder('vendor')
@@ -226,15 +240,5 @@ export class VendorsService {
 		const repository = manager.getRepository(Vendor);
 
 		return { queryRunner, repository, manager };
-	}
-
-	private getRepository(
-		manager: EntityManager | null = null
-	): Repository<Vendor> {
-		const repository = manager
-			? manager.getRepository(Vendor)
-			: this.vendorRepository;
-
-		return repository;
 	}
 }

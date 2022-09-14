@@ -17,6 +17,7 @@ import { EntitiesService } from '../entities.service';
 import { RoleUniqueFields } from './types/role-unique-fields.interface';
 import { TransactionKit } from '../../common/types/transaction-kit.interface';
 import { RoleId } from './types/role-id.interface';
+import { AvailableEntitiesEnum } from '../../common/enums/available-entities.enum';
 
 @Injectable()
 export class RolesService {
@@ -34,7 +35,12 @@ export class RolesService {
 	) {}
 
 	async getAllRoles(manager: EntityManager | null = null): Promise<Role[]> {
-		const repository = this.getRepository(manager);
+		const repository = this.entitiesService.getRepository(
+			manager,
+			this.roleRepository,
+			AvailableEntitiesEnum.Role
+		);
+
 		return repository.createQueryBuilder('role').getMany();
 	}
 
@@ -42,7 +48,11 @@ export class RolesService {
 		id: number,
 		manager: EntityManager | null = null
 	): Promise<Role> {
-		const repository = this.getRepository(manager);
+		const repository = this.entitiesService.getRepository(
+			manager,
+			this.roleRepository,
+			AvailableEntitiesEnum.Role
+		);
 
 		return repository
 			.createQueryBuilder('role')
@@ -54,7 +64,11 @@ export class RolesService {
 		value: string,
 		manager: EntityManager | null = null
 	): Promise<Role> {
-		const repository = this.getRepository(manager);
+		const repository = this.entitiesService.getRepository(
+			manager,
+			this.roleRepository,
+			AvailableEntitiesEnum.Role
+		);
 
 		return await repository
 			.createQueryBuilder('role')
@@ -220,16 +234,6 @@ export class RolesService {
 			findOptions,
 			'Role'
 		);
-	}
-
-	private getRepository(
-		manager: EntityManager | null = null
-	): Repository<Role> {
-		const repository = manager
-			? manager.getRepository(Role)
-			: this.roleRepository;
-
-		return repository;
 	}
 
 	private getQueryRunnerAndRepository(): TransactionKit<Role> {
