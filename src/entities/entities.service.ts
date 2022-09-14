@@ -22,30 +22,6 @@ import { TransactionKit } from '../common/types/transaction-kit.interface';
 export class EntitiesService {
 	constructor(private dataSource: DataSource) {}
 
-	async checkForDublicates<E>(
-		repository: Repository<E>,
-		findOptions: FindOptionsWhere<E>[],
-		entityName = 'Entity'
-	): Promise<void> {
-		const candidate = await repository.findOne({
-			where: findOptions
-		});
-
-		if (candidate) {
-			const dublicatedFields = this.getDublicatedFields<E>(
-				findOptions,
-				candidate
-			);
-
-			throw new HttpException(
-				`${entityName} with given [${dublicatedFields.join(
-					', '
-				)}] fields already exists`,
-				HttpStatus.BAD_REQUEST
-			);
-		}
-	}
-
 	async isExist<E>(
 		findOptions: FindOptionsWhere<E>[],
 		repository: Repository<E>,
@@ -72,41 +48,6 @@ export class EntitiesService {
 		}
 
 		return candidate;
-	}
-
-	getFindOptionsToFindDublicates<E>(
-		entity: E | null,
-		dto: Partial<E>,
-		uniqueFields: FindOptionsWhere<E>[]
-	): FindOptionsWhere<E>[] {
-		const findOptions: FindOptionsWhere<E>[] = [];
-
-		uniqueFields.forEach((fields) => {
-			const condition = {};
-			const providedValues = [];
-
-			Object.keys(fields).forEach((field) => {
-				providedValues.push(dto[field]);
-			});
-
-			const isAnyValueProvided = providedValues.some((value) =>
-				Boolean(value)
-			);
-
-			// For example if we have unique restriction on
-			// firstName + lastName, then if provided dto
-			// has only firstName we have to take lastName from user
-			// and get condition "firstName and lastName"
-			if (isAnyValueProvided) {
-				Object.keys(fields).forEach((field) => {
-					condition[field] = dto[field] ? dto[field] : entity[field];
-				});
-
-				findOptions.push(condition);
-			}
-		});
-
-		return findOptions;
 	}
 
 	doDtoHaveUniqueFields<D>(dto: D, uniqueFields: string[]): boolean {
@@ -141,48 +82,48 @@ export class EntitiesService {
 		return { queryRunner, repository, manager };
 	}
 
-	async findEntityDublicate<E>(
+	async findEntityDuplicate<E>(
 		entity: E | null,
 		entityDto: Partial<E>,
 		repository: Repository<E>,
 		entityUniqueFieldsToCheck: FindOptionsWhere<E>[]
 	): Promise<void> {
-		const findOptions = this.getFindOptionsToFindDublicates<E>(
+		const findOptions = this.getFindOptionsToFindDuplicates<E>(
 			entity,
 			entityDto,
 			entityUniqueFieldsToCheck
 		);
 
-		return this.checkForDublicates<E>(repository, findOptions, 'Entity');
+		return this.checkForDuplicates<E>(repository, findOptions, 'Entity');
 	}
 
-	private getDublicatedFields<E>(
+	private getDuplicatedFields<E>(
 		findOptionItems: Record<string, any>[],
 		entity: E
 	): string[] {
-		const dublicates: string[] = [];
+		const duplicates: string[] = [];
 
 		findOptionItems.forEach((item) => {
 			const itemKeys = Object.keys(item);
-			const dublicatedProps = [];
+			const duplicatedProps = [];
 
 			for (const key of itemKeys) {
 				if (entity[key] === item[key]) {
-					dublicatedProps.push(`${key}=${entity[key]}`);
+					duplicatedProps.push(`${key}=${entity[key]}`);
 				} else {
 					break;
 				}
 			}
 
 			if (
-				dublicatedProps.length > 0 &&
-				dublicatedProps.length === itemKeys.length
+				duplicatedProps.length > 0 &&
+				duplicatedProps.length === itemKeys.length
 			) {
-				dublicates.push(dublicatedProps.join(' + '));
+				duplicates.push(duplicatedProps.join(' + '));
 			}
 		});
 
-		return dublicates;
+		return duplicates;
 	}
 
 	// TODO: Rewrite using generics without switch...case
@@ -220,6 +161,65 @@ export class EntitiesService {
 				return manager.getRepository(Category) as Repository<E>;
 			case 'Attribute':
 				return manager.getRepository(Attribute) as Repository<E>;
+		}
+	}
+
+	private getFindOptionsToFindDuplicates<E>(
+		entity: E | null,
+		dto: Partial<E>,
+		uniqueFields: FindOptionsWhere<E>[]
+	): FindOptionsWhere<E>[] {
+		const findOptions: FindOptionsWhere<E>[] = [];
+
+		uniqueFields.forEach((fields) => {
+			const condition = {};
+			const providedValues = [];
+
+			Object.keys(fields).forEach((field) => {
+				providedValues.push(dto[field]);
+			});
+
+			const isAnyValueProvided = providedValues.some((value) =>
+				Boolean(value)
+			);
+
+			// For example if we have unique restriction on
+			// firstName + lastName, then if provided dto
+			// has only firstName we have to take lastName from user
+			// and get condition "firstName and lastName"
+			if (isAnyValueProvided) {
+				Object.keys(fields).forEach((field) => {
+					condition[field] = dto[field] ? dto[field] : entity[field];
+				});
+
+				findOptions.push(condition);
+			}
+		});
+
+		return findOptions;
+	}
+
+	private async checkForDuplicates<E>(
+		repository: Repository<E>,
+		findOptions: FindOptionsWhere<E>[],
+		entityName = 'Entity'
+	): Promise<void> {
+		const candidate = await repository.findOne({
+			where: findOptions
+		});
+
+		if (candidate) {
+			const duplicatedFields = this.getDuplicatedFields<E>(
+				findOptions,
+				candidate
+			);
+
+			throw new HttpException(
+				`${entityName} with given [${duplicatedFields.join(
+					', '
+				)}] fields already exists`,
+				HttpStatus.BAD_REQUEST
+			);
 		}
 	}
 }

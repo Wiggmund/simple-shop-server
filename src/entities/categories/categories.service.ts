@@ -90,7 +90,7 @@ export class CategoriesService {
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
 		try {
-			await this.entitiesService.findEntityDublicate<Category>(
+			await this.entitiesService.findEntityDuplicate<Category>(
 				null,
 				categoryDto,
 				repository,
@@ -151,7 +151,7 @@ export class CategoriesService {
 					this.uniqueFields
 				)
 			) {
-				await this.entitiesService.findEntityDublicate<Category>(
+				await this.entitiesService.findEntityDuplicate<Category>(
 					category,
 					categoryDto,
 					repository,

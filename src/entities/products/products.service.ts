@@ -99,7 +99,7 @@ export class ProductsService {
 		try {
 			const productDto = new CreateProductDto(productCreationDataDto);
 
-			await this.entitiesService.findEntityDublicate<Product>(
+			await this.entitiesService.findEntityDuplicate<Product>(
 				null,
 				productDto,
 				repository,
@@ -249,7 +249,7 @@ export class ProductsService {
 					this.uniqueFields
 				)
 			) {
-				await this.entitiesService.findEntityDublicate<Product>(
+				await this.entitiesService.findEntityDuplicate<Product>(
 					product,
 					productDto,
 					repository,

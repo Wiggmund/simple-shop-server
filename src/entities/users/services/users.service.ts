@@ -96,7 +96,7 @@ export class UsersService {
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
 		try {
-			await this.entitiesService.findEntityDublicate<User>(
+			await this.entitiesService.findEntityDuplicate<User>(
 				null,
 				userDto,
 				repository,
@@ -172,7 +172,7 @@ export class UsersService {
 					this.uniqueFields
 				)
 			) {
-				await this.entitiesService.findEntityDublicate<User>(
+				await this.entitiesService.findEntityDuplicate<User>(
 					user,
 					userDto,
 					repository,

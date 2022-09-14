@@ -94,7 +94,7 @@ export class RolesService {
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
 		try {
-			await this.entitiesService.findEntityDublicate<Role>(
+			await this.entitiesService.findEntityDuplicate<Role>(
 				null,
 				roleDto,
 				repository,
@@ -152,7 +152,7 @@ export class RolesService {
 					this.uniqueFields
 				)
 			) {
-				await this.entitiesService.findEntityDublicate<Role>(
+				await this.entitiesService.findEntityDuplicate<Role>(
 					role,
 					roleDto,
 					repository,

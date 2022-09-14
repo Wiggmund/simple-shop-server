@@ -94,7 +94,7 @@ export class AttributesService {
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
 		try {
-			await this.entitiesService.findEntityDublicate<Attribute>(
+			await this.entitiesService.findEntityDuplicate<Attribute>(
 				null,
 				attributeDto,
 				repository,
@@ -155,7 +155,7 @@ export class AttributesService {
 					this.uniqueFields
 				)
 			) {
-				await this.entitiesService.findEntityDublicate<Attribute>(
+				await this.entitiesService.findEntityDuplicate<Attribute>(
 					attribute,
 					attributeDto,
 					repository,

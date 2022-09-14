@@ -89,7 +89,7 @@ export class VendorsService {
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
 		try {
-			await this.entitiesService.findEntityDublicate<Vendor>(
+			await this.entitiesService.findEntityDuplicate<Vendor>(
 				null,
 				vendorDto,
 				repository,
@@ -150,7 +150,7 @@ export class VendorsService {
 					this.uniqueFields
 				)
 			) {
-				await this.entitiesService.findEntityDublicate<Vendor>(
+				await this.entitiesService.findEntityDuplicate<Vendor>(
 					vendor,
 					vendorDto,
 					repository,
