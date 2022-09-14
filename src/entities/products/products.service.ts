@@ -99,14 +99,15 @@ export class ProductsService {
 		try {
 			const productDto = new CreateProductDto(productCreationDataDto);
 
-			await this.findProductDublicate<CreateProductDto>(
+			await this.entitiesService.findEntityDublicate<Product>(
 				null,
 				productDto,
-				repository
+				repository,
+				this.productUniqueFieldsToCheck
 			);
 
 			/* 
-				Getting related entites
+				Getting related entities
 			*/
 			const category = await this.categoriesService.getCategoryByName(
 				productCreationDataDto.category,
@@ -248,10 +249,11 @@ export class ProductsService {
 					this.uniqueFields
 				)
 			) {
-				await this.findProductDublicate<UpdateProductDto>(
+				await this.entitiesService.findEntityDublicate<Product>(
 					product,
 					productDto,
-					repository
+					repository,
+					this.productUniqueFieldsToCheck
 				);
 			}
 			console.log('HERE');
@@ -333,25 +335,6 @@ export class ProductsService {
 		} finally {
 			await queryRunner.release();
 		}
-	}
-
-	private async findProductDublicate<D>(
-		product: Product | null,
-		productDto: D,
-		repository: Repository<Product>
-	): Promise<void> {
-		const findOptions =
-			this.entitiesService.getFindOptionsToFindDublicates<Product>(
-				product,
-				productDto,
-				this.productUniqueFieldsToCheck
-			);
-
-		return this.entitiesService.checkForDublicates<Product>(
-			repository,
-			findOptions,
-			'Product'
-		);
 	}
 
 	private async getRelatedEntitiesIds(

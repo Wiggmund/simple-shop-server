@@ -1,5 +1,10 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import {DataSource, EntityManager, FindOptionsWhere, Repository} from 'typeorm';
+import {
+	DataSource,
+	EntityManager,
+	FindOptionsWhere,
+	Repository
+} from 'typeorm';
 import { Vendor } from './vendors/entity/vendor.entity';
 import { User } from './users/entity/user.entity';
 import { Transaction } from './transactions/entity/transaction.entity';
@@ -15,9 +20,7 @@ import { TransactionKit } from '../common/types/transaction-kit.interface';
 
 @Injectable()
 export class EntitiesService {
-	constructor(
-		private dataSource: DataSource
-	) {}
+	constructor(private dataSource: DataSource) {}
 
 	async checkForDublicates<E>(
 		repository: Repository<E>,
@@ -136,6 +139,21 @@ export class EntitiesService {
 		const repository = this.getEntityRepository<E>(manager, entityName);
 
 		return { queryRunner, repository, manager };
+	}
+
+	async findEntityDublicate<E>(
+		entity: E | null,
+		entityDto: Partial<E>,
+		repository: Repository<E>,
+		entityUniqueFieldsToCheck: FindOptionsWhere<E>[]
+	): Promise<void> {
+		const findOptions = this.getFindOptionsToFindDublicates<E>(
+			entity,
+			entityDto,
+			entityUniqueFieldsToCheck
+		);
+
+		return this.checkForDublicates<E>(repository, findOptions, 'Entity');
 	}
 
 	private getDublicatedFields<E>(

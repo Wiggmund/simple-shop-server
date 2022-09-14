@@ -94,10 +94,11 @@ export class RolesService {
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
 		try {
-			await this.findRoleDublicate<CreateRoleDto>(
+			await this.entitiesService.findEntityDublicate<Role>(
 				null,
 				roleDto,
-				repository
+				repository,
+				this.roleUniqueFieldsToCheck
 			);
 
 			const roleId = (
@@ -151,10 +152,11 @@ export class RolesService {
 					this.uniqueFields
 				)
 			) {
-				await this.findRoleDublicate<UpdateRoleDto>(
+				await this.entitiesService.findEntityDublicate<Role>(
 					role,
 					roleDto,
-					repository
+					repository,
+					this.roleUniqueFieldsToCheck
 				);
 			}
 
@@ -216,24 +218,5 @@ export class RolesService {
 		} finally {
 			await queryRunner.release();
 		}
-	}
-
-	private async findRoleDublicate<D>(
-		role: Role,
-		roleDto: D,
-		repository: Repository<Role>
-	): Promise<void> {
-		const findOptions =
-			this.entitiesService.getFindOptionsToFindDublicates<Role>(
-				role,
-				roleDto,
-				this.roleUniqueFieldsToCheck
-			);
-
-		return await this.entitiesService.checkForDublicates<Role>(
-			repository,
-			findOptions,
-			'Role'
-		);
 	}
 }

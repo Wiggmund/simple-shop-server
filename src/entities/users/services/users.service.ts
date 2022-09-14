@@ -91,14 +91,16 @@ export class UsersService {
 			this.entitiesService.getTransactionKit<User>(
 				AvailableEntitiesEnum.User
 			);
+		const doPhotoProvided = Boolean(file);
 
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
 		try {
-			await this.findUserDublicate<UpdateUserDto>(
+			await this.entitiesService.findEntityDublicate<User>(
 				null,
 				userDto,
-				repository
+				repository,
+				this.userUniqueFieldsToCheck
 			);
 
 			const userId = (
@@ -112,7 +114,7 @@ export class UsersService {
 				).identifiers as UserId[]
 			)[0].id;
 
-			if (file) {
+			if (doPhotoProvided) {
 				const avatar = await this.photosService.createPhoto(
 					file,
 					queryRunner.manager
@@ -135,7 +137,10 @@ export class UsersService {
 			return savedUser;
 		} catch (err) {
 			await queryRunner.rollbackTransaction();
-			this.fileSystemService.deletePhotoFile(file.filename);
+
+			if (doPhotoProvided) {
+				this.fileSystemService.deletePhotoFile(file.filename);
+			}
 
 			if (err instanceof HttpException) {
 				throw err;
@@ -167,10 +172,11 @@ export class UsersService {
 					this.uniqueFields
 				)
 			) {
-				await this.findUserDublicate<UpdateUserDto>(
+				await this.entitiesService.findEntityDublicate<User>(
 					user,
 					userDto,
-					repository
+					repository,
+					this.userUniqueFieldsToCheck
 				);
 			}
 
@@ -249,25 +255,6 @@ export class UsersService {
 		} finally {
 			await queryRunner.release();
 		}
-	}
-
-	private async findUserDublicate<D>(
-		user: User,
-		userDto: D,
-		repository: Repository<User>
-	): Promise<void> {
-		const findOptions =
-			this.entitiesService.getFindOptionsToFindDublicates<User>(
-				user,
-				userDto,
-				this.userUniqueFieldsToCheck
-			);
-
-		return await this.entitiesService.checkForDublicates<User>(
-			repository,
-			findOptions,
-			'User'
-		);
 	}
 
 	private async getRelatedEntitiesIds(

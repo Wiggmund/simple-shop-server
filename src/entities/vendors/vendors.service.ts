@@ -89,10 +89,11 @@ export class VendorsService {
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
 		try {
-			await this.findVendorDublicate<CreateVendorDto>(
+			await this.entitiesService.findEntityDublicate<Vendor>(
 				null,
 				vendorDto,
-				repository
+				repository,
+				this.vendorUniqueFieldsToCheck
 			);
 
 			const vendorId = (
@@ -149,10 +150,11 @@ export class VendorsService {
 					this.uniqueFields
 				)
 			) {
-				await this.findVendorDublicate<UpdateVendorDto>(
+				await this.entitiesService.findEntityDublicate<Vendor>(
 					vendor,
 					vendorDto,
-					repository
+					repository,
+					this.vendorUniqueFieldsToCheck
 				);
 			}
 
@@ -214,24 +216,5 @@ export class VendorsService {
 		} finally {
 			await queryRunner.release();
 		}
-	}
-
-	private async findVendorDublicate<D>(
-		vendor: Vendor,
-		vendorDto: D,
-		repository: Repository<Vendor>
-	): Promise<void> {
-		const findOptions =
-			this.entitiesService.getFindOptionsToFindDublicates<Vendor>(
-				vendor,
-				vendorDto,
-				this.vendorUniqueFieldsToCheck
-			);
-
-		return await this.entitiesService.checkForDublicates<Vendor>(
-			repository,
-			findOptions,
-			'Vendor'
-		);
 	}
 }

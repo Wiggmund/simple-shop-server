@@ -90,10 +90,11 @@ export class CategoriesService {
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
 		try {
-			await this.findCategoryDublicate<CreateCategoryDto>(
+			await this.entitiesService.findEntityDublicate<Category>(
 				null,
 				categoryDto,
-				repository
+				repository,
+				this.categoryUniqueFieldsToCheck
 			);
 
 			const categoryId = (
@@ -150,10 +151,11 @@ export class CategoriesService {
 					this.uniqueFields
 				)
 			) {
-				await this.findCategoryDublicate<UpdateCategoryDto>(
+				await this.entitiesService.findEntityDublicate<Category>(
 					category,
 					categoryDto,
-					repository
+					repository,
+					this.categoryUniqueFieldsToCheck
 				);
 			}
 
@@ -215,24 +217,5 @@ export class CategoriesService {
 		} finally {
 			await queryRunner.release();
 		}
-	}
-
-	private async findCategoryDublicate<D>(
-		category: Category,
-		categoryDto: D,
-		repository: Repository<Category>
-	): Promise<void> {
-		const findOptions =
-			this.entitiesService.getFindOptionsToFindDublicates<Category>(
-				category,
-				categoryDto,
-				this.categoryUniqueFieldsToCheck
-			);
-
-		return await this.entitiesService.checkForDublicates<Category>(
-			repository,
-			findOptions,
-			'Category'
-		);
 	}
 }

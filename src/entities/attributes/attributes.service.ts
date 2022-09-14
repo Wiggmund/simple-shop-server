@@ -94,10 +94,11 @@ export class AttributesService {
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
 		try {
-			await this.findAttributeDublicate<CreateAttributeDto>(
+			await this.entitiesService.findEntityDublicate<Attribute>(
 				null,
 				attributeDto,
-				repository
+				repository,
+				this.attributeUniqueFieldsToCheck
 			);
 
 			const attributeId = (
@@ -154,10 +155,11 @@ export class AttributesService {
 					this.uniqueFields
 				)
 			) {
-				await this.findAttributeDublicate<UpdateAttributeDto>(
+				await this.entitiesService.findEntityDublicate<Attribute>(
 					attribute,
 					attributeDto,
-					repository
+					repository,
+					this.attributeUniqueFieldsToCheck
 				);
 			}
 
@@ -219,24 +221,5 @@ export class AttributesService {
 		} finally {
 			await queryRunner.release();
 		}
-	}
-
-	private async findAttributeDublicate<D>(
-		attribute: Attribute,
-		attributeDto: D,
-		repository: Repository<Attribute>
-	): Promise<void> {
-		const findOptions =
-			this.entitiesService.getFindOptionsToFindDublicates<Attribute>(
-				attribute,
-				attributeDto,
-				this.attributeUniqueFieldsToCheck
-			);
-
-		return await this.entitiesService.checkForDublicates<Attribute>(
-			repository,
-			findOptions,
-			'Attribute'
-		);
 	}
 }
