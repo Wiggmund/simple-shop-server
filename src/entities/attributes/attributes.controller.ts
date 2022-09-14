@@ -7,6 +7,7 @@ import {
 	Post,
 	Put
 } from '@nestjs/common';
+import { DtoValidationPipe } from '../../common/pipes/dto-validation.pipe';
 import { AttributesService } from './attributes.service';
 import { CreateAttributeDto } from './dto/create-attribute.dto';
 import { UpdateAttributeDto } from './dto/update-attribute.dto';
@@ -26,13 +27,13 @@ export class AttributesController {
 	}
 
 	@Post()
-	createAttribute(@Body() attributeDto: CreateAttributeDto) {
+	createAttribute(@Body(DtoValidationPipe) attributeDto: CreateAttributeDto) {
 		return this.attributesService.createAttribute(attributeDto);
 	}
 
 	@Put(':id')
 	updateAttribute(
-		@Body() attributeDto: UpdateAttributeDto,
+		@Body(DtoValidationPipe) attributeDto: UpdateAttributeDto,
 		@Param('id') id: number
 	) {
 		return this.attributesService.updateAttribute(attributeDto, id);

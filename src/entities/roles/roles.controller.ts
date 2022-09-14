@@ -10,6 +10,7 @@ import {
 import { RolesService } from './roles.service';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { CreateRoleDto } from './dto/create-role.dto';
+import { DtoValidationPipe } from '../../common/pipes/dto-validation.pipe';
 
 @Controller('roles')
 export class RolesController {
@@ -26,12 +27,15 @@ export class RolesController {
 	}
 
 	@Post()
-	createRole(@Body() roleDto: CreateRoleDto) {
+	createRole(@Body(DtoValidationPipe) roleDto: CreateRoleDto) {
 		return this.rolesService.createRole(roleDto);
 	}
 
 	@Put(':id')
-	updateRole(@Body() roleDto: UpdateRoleDto, @Param('id') id: number) {
+	updateRole(
+		@Body(DtoValidationPipe) roleDto: UpdateRoleDto,
+		@Param('id') id: number
+	) {
 		return this.rolesService.updateRole(roleDto, id);
 	}
 

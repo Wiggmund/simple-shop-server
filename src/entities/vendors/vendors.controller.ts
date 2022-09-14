@@ -10,6 +10,7 @@ import {
 import { VendorsService } from './vendors.service';
 import { CreateVendorDto } from './dto/create-vendor.dto';
 import { UpdateVendorDto } from './dto/update-vendor.dto';
+import { DtoValidationPipe } from '../../common/pipes/dto-validation.pipe';
 
 @Controller('vendors')
 export class VendorsController {
@@ -26,12 +27,15 @@ export class VendorsController {
 	}
 
 	@Post()
-	createVendor(@Body() vendorDto: CreateVendorDto) {
+	createVendor(@Body(DtoValidationPipe) vendorDto: CreateVendorDto) {
 		return this.vendorsService.createVendor(vendorDto);
 	}
 
 	@Put(':id')
-	updateVendor(@Body() vendorDto: UpdateVendorDto, @Param('id') id: number) {
+	updateVendor(
+		@Body(DtoValidationPipe) vendorDto: UpdateVendorDto,
+		@Param('id') id: number
+	) {
 		return this.vendorsService.updateVendor(vendorDto, id);
 	}
 

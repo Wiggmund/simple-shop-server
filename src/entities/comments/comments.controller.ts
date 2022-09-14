@@ -7,6 +7,7 @@ import {
 	Post,
 	Put
 } from '@nestjs/common';
+import { DtoValidationPipe } from '../../common/pipes/dto-validation.pipe';
 import { CommentsService } from './comments.service';
 import { CreateCommentDataDto } from './dto/create-comment-data.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
@@ -26,13 +27,13 @@ export class CommentsController {
 	}
 
 	@Post()
-	createComment(@Body() commentDto: CreateCommentDataDto) {
+	createComment(@Body(DtoValidationPipe) commentDto: CreateCommentDataDto) {
 		return this.commentsService.createComment(commentDto);
 	}
 
 	@Put(':id')
 	updateComment(
-		@Body() commentDto: UpdateCommentDto,
+		@Body(DtoValidationPipe) commentDto: UpdateCommentDto,
 		@Param('id') id: number
 	) {
 		return this.commentsService.updateComment(commentDto, id);

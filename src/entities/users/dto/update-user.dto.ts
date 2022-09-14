@@ -9,7 +9,6 @@ export class UpdateUserDto {
 	@MinLength(StringErrorMessages.defaultMinLength, {
 		message: StringErrorMessages.shortString
 	})
-	@IsOptional()
 	readonly firstName: string;
 
 	@IsString({ message: StringErrorMessages.mustBeString })

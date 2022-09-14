@@ -10,6 +10,7 @@ import {
 import { TransactionsService } from './transactions.service';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
+import { DtoValidationPipe } from '../../common/pipes/dto-validation.pipe';
 
 @Controller('transactions')
 export class TransactionsController {
@@ -26,13 +27,15 @@ export class TransactionsController {
 	}
 
 	@Post()
-	createTransaction(@Body() transactionDto: CreateTransactionDto) {
+	createTransaction(
+		@Body(DtoValidationPipe) transactionDto: CreateTransactionDto
+	) {
 		return this.transactionsService.createTransaction(transactionDto);
 	}
 
 	@Put(':id')
 	updateTransaction(
-		@Body() transactionDto: UpdateTransactionDto,
+		@Body(DtoValidationPipe) transactionDto: UpdateTransactionDto,
 		@Param('id') id: number
 	) {
 		return this.transactionsService.updateTransaction(transactionDto, id);

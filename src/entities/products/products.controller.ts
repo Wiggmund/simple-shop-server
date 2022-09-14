@@ -14,6 +14,7 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { Express } from 'express';
 import { ProductCreationDataDto } from './dto/product-creation-data.dto';
+import { DtoValidationPipe } from '../../common/pipes/dto-validation.pipe';
 
 @Controller('products')
 export class ProductsController {
@@ -33,14 +34,14 @@ export class ProductsController {
 	@UseInterceptors(FilesInterceptor('productPhotos'))
 	createProduct(
 		@UploadedFiles() files: Array<Express.Multer.File>,
-		@Body() productDto: ProductCreationDataDto
+		@Body(DtoValidationPipe) productDto: ProductCreationDataDto
 	) {
 		return this.productsService.createProduct(productDto, files);
 	}
 
 	@Put(':id')
 	updateProduct(
-		@Body() productDto: UpdateProductDto,
+		@Body(DtoValidationPipe) productDto: UpdateProductDto,
 		@Param('id') id: number
 	) {
 		return this.productsService.updateProduct(productDto, id);

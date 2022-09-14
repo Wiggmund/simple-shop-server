@@ -67,6 +67,15 @@ export const DateErrorMessages = {
 	}
 };
 
+export const BooleanErrorMessages = {
+	mustBeBoolean: (data: ValidationArguments) => {
+		if (data.value === undefined) {
+			return `You didn't provide any value`;
+		}
+		return `Must be boolean value, you provide [ ${data.value} ]`;
+	}
+};
+
 function checkForType(data) {
 	if (data === null) {
 		return 'null';
