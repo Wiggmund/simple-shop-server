@@ -1,11 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import {
-	DataSource,
-	EntityManager,
-	FindOptionsWhere,
-	Repository
-} from 'typeorm';
+import { EntityManager, FindOptionsWhere, Repository } from 'typeorm';
 
 import { Category } from './entity/category.entity';
 
@@ -15,7 +10,6 @@ import { UpdateCategoryDto } from './dto/update-category.dto';
 import { EntitiesService } from '../entities.service';
 
 import { CategoryUniqueFields } from './types/category-unique-fields.interface';
-import { TransactionKit } from '../../common/types/transaction-kit.interface';
 import { CategoryId } from './types/category-id.interface';
 import { AvailableEntitiesEnum } from '../../common/enums/available-entities.enum';
 
@@ -31,8 +25,7 @@ export class CategoriesService {
 	constructor(
 		@InjectRepository(Category)
 		private categoryRepository: Repository<Category>,
-		private entitiesService: EntitiesService,
-		private dataSource: DataSource
+		private entitiesService: EntitiesService
 	) {}
 
 	async getAllCategories(
@@ -89,7 +82,10 @@ export class CategoriesService {
 	}
 
 	async createCategory(categoryDto: CreateCategoryDto): Promise<Category> {
-		const { queryRunner, repository } = this.getQueryRunnerAndRepository();
+		const { queryRunner, repository } =
+			this.entitiesService.getTransactionKit<Category>(
+				AvailableEntitiesEnum.Category
+			);
 
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
@@ -136,7 +132,9 @@ export class CategoriesService {
 		id: number
 	): Promise<Category> {
 		const { queryRunner, repository, manager } =
-			this.getQueryRunnerAndRepository();
+			this.entitiesService.getTransactionKit<Category>(
+				AvailableEntitiesEnum.Category
+			);
 
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
@@ -184,7 +182,10 @@ export class CategoriesService {
 	}
 
 	async deleteCategory(id: number): Promise<Category> {
-		const { queryRunner, repository } = this.getQueryRunnerAndRepository();
+		const { queryRunner, repository } =
+			this.entitiesService.getTransactionKit<Category>(
+				AvailableEntitiesEnum.Category
+			);
 
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
@@ -233,13 +234,5 @@ export class CategoriesService {
 			findOptions,
 			'Category'
 		);
-	}
-
-	private getQueryRunnerAndRepository(): TransactionKit<Category> {
-		const queryRunner = this.dataSource.createQueryRunner();
-		const manager = queryRunner.manager;
-		const repository = manager.getRepository(Category);
-
-		return { queryRunner, repository, manager };
 	}
 }

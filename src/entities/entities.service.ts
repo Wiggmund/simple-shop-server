@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { EntityManager, FindOptionsWhere, Repository } from 'typeorm';
+import {DataSource, EntityManager, FindOptionsWhere, Repository} from 'typeorm';
 import { Vendor } from './vendors/entity/vendor.entity';
 import { User } from './users/entity/user.entity';
 import { Transaction } from './transactions/entity/transaction.entity';
@@ -11,9 +11,14 @@ import { Category } from './categories/entity/category.entity';
 import { Attribute } from './attributes/entity/attribute.entity';
 import { ProductToAttribute } from './products/entity/product-to-attribute.entity';
 import { AvailableEntities } from '../common/types/available-entities.interface';
+import { TransactionKit } from '../common/types/transaction-kit.interface';
 
 @Injectable()
 export class EntitiesService {
+	constructor(
+		private dataSource: DataSource
+	) {}
+
 	async checkForDublicates<E>(
 		repository: Repository<E>,
 		findOptions: FindOptionsWhere<E>[],
@@ -106,40 +111,31 @@ export class EntitiesService {
 		return dtoKeys.some((key) => uniqueFields.includes(key));
 	}
 
-	// TODO: Rewrite using generics without switch...case
 	getRepository<E>(
 		manager: EntityManager | null = null,
 		repository: Repository<E>,
 		entityName: AvailableEntities
 	): Repository<E> {
 		if (!manager) {
+			if (!repository) {
+				throw new HttpException(
+					`Didn't provide [repository] argument for ${this.getRepository.name}`,
+					HttpStatus.INTERNAL_SERVER_ERROR
+				);
+			}
+
 			return repository;
 		}
 
-		switch (entityName) {
-			case 'Vendor':
-				return manager.getRepository(Vendor) as Repository<E>;
-			case 'User':
-				return manager.getRepository(User) as Repository<E>;
-			case 'Transaction':
-				return manager.getRepository(Transaction) as Repository<E>;
-			case 'Role':
-				return manager.getRepository(Role) as Repository<E>;
-			case 'Product':
-				return manager.getRepository(Product) as Repository<E>;
-			case 'ProductToAttribute':
-				return manager.getRepository(
-					ProductToAttribute
-				) as Repository<E>;
-			case 'Photo':
-				return manager.getRepository(Photo) as Repository<E>;
-			case 'Comment':
-				return manager.getRepository(Comment) as Repository<E>;
-			case 'Category':
-				return manager.getRepository(Category) as Repository<E>;
-			case 'Attribute':
-				return manager.getRepository(Attribute) as Repository<E>;
-		}
+		return this.getEntityRepository<E>(manager, entityName);
+	}
+
+	getTransactionKit<E>(entityName: AvailableEntities): TransactionKit<E> {
+		const queryRunner = this.dataSource.createQueryRunner();
+		const manager = queryRunner.manager;
+		const repository = this.getEntityRepository<E>(manager, entityName);
+
+		return { queryRunner, repository, manager };
 	}
 
 	private getDublicatedFields<E>(
@@ -169,5 +165,43 @@ export class EntitiesService {
 		});
 
 		return dublicates;
+	}
+
+	// TODO: Rewrite using generics without switch...case
+	private getEntityRepository<E>(
+		manager: EntityManager,
+		entityName: AvailableEntities
+	): Repository<E> {
+		if (!manager) {
+			throw new HttpException(
+				`Didn't provide [manager]  for ${this.getEntityRepository.name}`,
+				HttpStatus.INTERNAL_SERVER_ERROR
+			);
+		}
+
+		switch (entityName) {
+			case 'Vendor':
+				return manager.getRepository(Vendor) as Repository<E>;
+			case 'User':
+				return manager.getRepository(User) as Repository<E>;
+			case 'Transaction':
+				return manager.getRepository(Transaction) as Repository<E>;
+			case 'Role':
+				return manager.getRepository(Role) as Repository<E>;
+			case 'Product':
+				return manager.getRepository(Product) as Repository<E>;
+			case 'ProductToAttribute':
+				return manager.getRepository(
+					ProductToAttribute
+				) as Repository<E>;
+			case 'Photo':
+				return manager.getRepository(Photo) as Repository<E>;
+			case 'Comment':
+				return manager.getRepository(Comment) as Repository<E>;
+			case 'Category':
+				return manager.getRepository(Category) as Repository<E>;
+			case 'Attribute':
+				return manager.getRepository(Attribute) as Repository<E>;
+		}
 	}
 }

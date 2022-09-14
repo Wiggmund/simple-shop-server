@@ -1,12 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Express } from 'express';
-import {
-	DataSource,
-	EntityManager,
-	FindOptionsWhere,
-	Repository
-} from 'typeorm';
+import { EntityManager, FindOptionsWhere, Repository } from 'typeorm';
 
 import { Product } from './entity/product.entity';
 import { Photo } from '../photos/entity/photo.entity';
@@ -28,7 +23,6 @@ import { CommentsService } from '../comments/comments.service';
 
 import { ProductId, ProductIdType } from './types/product-id.interface';
 import { IAttributeIdAndValue } from '../attributes/types/attribute-id-and-value.interface';
-import { TransactionKit } from '../../common/types/transaction-kit.interface';
 import { PhotoIdType } from '../photos/types/photo-id.interface';
 import {
 	ProductUniqueConditions,
@@ -60,8 +54,7 @@ export class ProductsService {
 		private fileSystemService: FileSystemService,
 		private productToAttributeService: ProductToAttributeService,
 		private commentsService: CommentsService,
-		private transactionsService: TransactionsService,
-		private dataSource: DataSource
+		private transactionsService: TransactionsService
 	) {}
 
 	async getAllProducts(
@@ -97,7 +90,9 @@ export class ProductsService {
 		files: Array<Express.Multer.File>
 	): Promise<Product> {
 		const { queryRunner, repository, manager } =
-			this.getQueryRunnerAndRepositoryAndManager();
+			this.entitiesService.getTransactionKit<Product>(
+				AvailableEntitiesEnum.Product
+			);
 
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
@@ -235,7 +230,9 @@ export class ProductsService {
 		id: number
 	): Promise<Product> {
 		const { queryRunner, repository, manager } =
-			this.getQueryRunnerAndRepositoryAndManager();
+			this.entitiesService.getTransactionKit<Product>(
+				AvailableEntitiesEnum.Product
+			);
 
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
@@ -284,7 +281,9 @@ export class ProductsService {
 
 	async deleteProduct(id: number): Promise<Product> {
 		const { queryRunner, repository, manager } =
-			this.getQueryRunnerAndRepositoryAndManager();
+			this.entitiesService.getTransactionKit<Product>(
+				AvailableEntitiesEnum.Product
+			);
 
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
@@ -353,14 +352,6 @@ export class ProductsService {
 			findOptions,
 			'Product'
 		);
-	}
-
-	private getQueryRunnerAndRepositoryAndManager(): TransactionKit<Product> {
-		const queryRunner = this.dataSource.createQueryRunner();
-		const manager = queryRunner.manager;
-		const repository = manager.getRepository(Product);
-
-		return { queryRunner, repository, manager };
 	}
 
 	private async getRelatedEntitiesIds(

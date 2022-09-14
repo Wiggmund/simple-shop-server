@@ -1,11 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import {
-	DataSource,
-	EntityManager,
-	FindOptionsWhere,
-	Repository
-} from 'typeorm';
+import { EntityManager, FindOptionsWhere, Repository } from 'typeorm';
 
 import { Vendor } from './entity/vendor.entity';
 
@@ -13,7 +8,6 @@ import { CreateVendorDto } from './dto/create-vendor.dto';
 import { UpdateVendorDto } from './dto/update-vendor.dto';
 
 import { VendorUniqueFields } from './types/vendor-unique-fields.interface';
-import { TransactionKit } from '../../common/types/transaction-kit.interface';
 import { IVendorID } from './types/vendor-id.interface';
 
 import { EntitiesService } from '../entities.service';
@@ -30,8 +24,7 @@ export class VendorsService {
 
 	constructor(
 		@InjectRepository(Vendor) private vendorRepository: Repository<Vendor>,
-		private entitiesService: EntitiesService,
-		private dataSource: DataSource
+		private entitiesService: EntitiesService
 	) {}
 
 	async getAllVendors(
@@ -88,7 +81,10 @@ export class VendorsService {
 	}
 
 	async createVendor(vendorDto: CreateVendorDto): Promise<Vendor> {
-		const { queryRunner, repository } = this.getQueryRunnerAndRepository();
+		const { queryRunner, repository } =
+			this.entitiesService.getTransactionKit<Vendor>(
+				AvailableEntitiesEnum.Vendor
+			);
 
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
@@ -135,7 +131,9 @@ export class VendorsService {
 		id: number
 	): Promise<Vendor> {
 		const { queryRunner, repository, manager } =
-			this.getQueryRunnerAndRepository();
+			this.entitiesService.getTransactionKit<Vendor>(
+				AvailableEntitiesEnum.Vendor
+			);
 
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
@@ -183,7 +181,10 @@ export class VendorsService {
 	}
 
 	async deleteVendor(id: number): Promise<Vendor> {
-		const { queryRunner, repository } = this.getQueryRunnerAndRepository();
+		const { queryRunner, repository } =
+			this.entitiesService.getTransactionKit<Vendor>(
+				AvailableEntitiesEnum.Vendor
+			);
 
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
@@ -232,13 +233,5 @@ export class VendorsService {
 			findOptions,
 			'Vendor'
 		);
-	}
-
-	private getQueryRunnerAndRepository(): TransactionKit<Vendor> {
-		const queryRunner = this.dataSource.createQueryRunner();
-		const manager = queryRunner.manager;
-		const repository = manager.getRepository(Vendor);
-
-		return { queryRunner, repository, manager };
 	}
 }

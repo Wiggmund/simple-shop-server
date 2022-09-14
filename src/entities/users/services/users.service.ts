@@ -1,12 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Express } from 'express';
-import {
-	DataSource,
-	EntityManager,
-	FindOptionsWhere,
-	Repository
-} from 'typeorm';
+import { EntityManager, FindOptionsWhere, Repository } from 'typeorm';
 
 import { User } from '../entity/user.entity';
 import { Photo } from '../../photos/entity/photo.entity';
@@ -18,7 +13,6 @@ import { UpdateUserDto } from '../dto/update-user.dto';
 
 import { UserUniqueFields } from '../types/user-unique-fields.interface';
 import { UserId, UserIdType } from '../types/user-id.interface';
-import { TransactionKit } from '../../../common/types/transaction-kit.interface';
 import { IUserRelatedEntitiesIds } from '../types/user-related-entities-ids.interface';
 
 import { EntitiesService } from '../../entities.service';
@@ -44,8 +38,7 @@ export class UsersService {
 		private photosService: PhotosService,
 		private fileSystemService: FileSystemService,
 		private commentsService: CommentsService,
-		private transactionsService: TransactionsService,
-		private dataSource: DataSource
+		private transactionsService: TransactionsService
 	) {}
 
 	async getAllUsers(manager: EntityManager | null = null): Promise<User[]> {
@@ -94,7 +87,10 @@ export class UsersService {
 		userDto: CreateUserDto,
 		file: Express.Multer.File
 	): Promise<User> {
-		const { queryRunner, repository } = this.getQueryRunnerAndRepository();
+		const { queryRunner, repository } =
+			this.entitiesService.getTransactionKit<User>(
+				AvailableEntitiesEnum.User
+			);
 
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
@@ -153,7 +149,9 @@ export class UsersService {
 
 	async updateUser(userDto: UpdateUserDto, id: number): Promise<User> {
 		const { queryRunner, repository, manager } =
-			this.getQueryRunnerAndRepository();
+			this.entitiesService.getTransactionKit<User>(
+				AvailableEntitiesEnum.User
+			);
 
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
@@ -202,7 +200,9 @@ export class UsersService {
 
 	async deleteUser(id: number): Promise<User> {
 		const { queryRunner, repository, manager } =
-			this.getQueryRunnerAndRepository();
+			this.entitiesService.getTransactionKit<User>(
+				AvailableEntitiesEnum.User
+			);
 
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
@@ -268,14 +268,6 @@ export class UsersService {
 			findOptions,
 			'User'
 		);
-	}
-
-	private getQueryRunnerAndRepository(): TransactionKit<User> {
-		const queryRunner = this.dataSource.createQueryRunner();
-		const manager = queryRunner.manager;
-		const repository = manager.getRepository(User);
-
-		return { queryRunner, repository, manager };
 	}
 
 	private async getRelatedEntitiesIds(

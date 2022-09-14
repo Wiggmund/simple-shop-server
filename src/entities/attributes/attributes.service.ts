@@ -1,11 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import {
-	DataSource,
-	EntityManager,
-	FindOptionsWhere,
-	Repository
-} from 'typeorm';
+import { EntityManager, FindOptionsWhere, Repository } from 'typeorm';
 
 import { Attribute } from './entity/attribute.entity';
 
@@ -15,7 +10,6 @@ import { UpdateAttributeDto } from './dto/update-attribute.dto';
 import { EntitiesService } from '../entities.service';
 
 import { AttributeUniqueFields } from './types/attribute-unique-fields.interface';
-import { TransactionKit } from '../../common/types/transaction-kit.interface';
 import { AttributeId } from './types/attribute-id.interface';
 import { AvailableEntitiesEnum } from '../../common/enums/available-entities.enum';
 
@@ -31,8 +25,7 @@ export class AttributesService {
 	constructor(
 		@InjectRepository(Attribute)
 		private attributeRepository: Repository<Attribute>,
-		private entitiesService: EntitiesService,
-		private dataSource: DataSource
+		private entitiesService: EntitiesService
 	) {}
 
 	async getAllAttributes(
@@ -93,7 +86,10 @@ export class AttributesService {
 	async createAttribute(
 		attributeDto: CreateAttributeDto
 	): Promise<Attribute> {
-		const { queryRunner, repository } = this.getQueryRunnerAndRepository();
+		const { queryRunner, repository } =
+			this.entitiesService.getTransactionKit<Attribute>(
+				AvailableEntitiesEnum.Attribute
+			);
 
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
@@ -140,7 +136,9 @@ export class AttributesService {
 		id: number
 	): Promise<Attribute> {
 		const { queryRunner, repository, manager } =
-			this.getQueryRunnerAndRepository();
+			this.entitiesService.getTransactionKit<Attribute>(
+				AvailableEntitiesEnum.Attribute
+			);
 
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
@@ -188,7 +186,10 @@ export class AttributesService {
 	}
 
 	async deleteAttribute(id: number): Promise<Attribute> {
-		const { queryRunner, repository } = this.getQueryRunnerAndRepository();
+		const { queryRunner, repository } =
+			this.entitiesService.getTransactionKit<Attribute>(
+				AvailableEntitiesEnum.Attribute
+			);
 
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
@@ -237,13 +238,5 @@ export class AttributesService {
 			findOptions,
 			'Attribute'
 		);
-	}
-
-	private getQueryRunnerAndRepository(): TransactionKit<Attribute> {
-		const queryRunner = this.dataSource.createQueryRunner();
-		const manager = queryRunner.manager;
-		const repository = manager.getRepository(Attribute);
-
-		return { queryRunner, repository, manager };
 	}
 }

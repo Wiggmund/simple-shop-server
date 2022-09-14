@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, EntityManager, Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 
 import { Comment } from './entity/comment.entity';
 import { User } from '../users/entity/user.entity';
@@ -12,7 +12,6 @@ import { CreateCommentDto } from './dto/create-comment.dto';
 
 import { EntitiesService } from '../entities.service';
 
-import { TransactionKit } from '../../common/types/transaction-kit.interface';
 import { CommentId, CommentIdType } from './types/comment-id.interface';
 import { CommentRelatedEntities } from './types/comment-related-entities.interface';
 import { UserIdType } from '../users/types/user-id.interface';
@@ -23,8 +22,7 @@ export class CommentsService {
 	constructor(
 		@InjectRepository(Comment)
 		private commentRepository: Repository<Comment>,
-		private entitiesService: EntitiesService,
-		private dataSource: DataSource
+		private entitiesService: EntitiesService
 	) {}
 
 	async getAllComments(
@@ -59,7 +57,9 @@ export class CommentsService {
 		commentDataDto: CreateCommentDataDto
 	): Promise<Comment> {
 		const { queryRunner, repository, manager } =
-			this.getQueryRunnerAndRepository();
+			this.entitiesService.getTransactionKit<Comment>(
+				AvailableEntitiesEnum.Comment
+			);
 
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
@@ -127,7 +127,9 @@ export class CommentsService {
 		id: number
 	): Promise<Comment> {
 		const { queryRunner, repository, manager } =
-			this.getQueryRunnerAndRepository();
+			this.entitiesService.getTransactionKit<Comment>(
+				AvailableEntitiesEnum.Comment
+			);
 
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
@@ -159,7 +161,10 @@ export class CommentsService {
 	}
 
 	async deleteComment(id: number): Promise<Comment> {
-		const { queryRunner, repository } = this.getQueryRunnerAndRepository();
+		const { queryRunner, repository } =
+			this.entitiesService.getTransactionKit<Comment>(
+				AvailableEntitiesEnum.Comment
+			);
 
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
@@ -233,13 +238,5 @@ export class CommentsService {
 			.relation(Comment, 'user')
 			.of(ids)
 			.set(null);
-	}
-
-	private getQueryRunnerAndRepository(): TransactionKit<Comment> {
-		const queryRunner = this.dataSource.createQueryRunner();
-		const manager = queryRunner.manager;
-		const repository = manager.getRepository(Comment);
-
-		return { queryRunner, repository, manager };
 	}
 }

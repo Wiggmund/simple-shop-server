@@ -1,11 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import {
-	DataSource,
-	EntityManager,
-	FindOptionsWhere,
-	Repository
-} from 'typeorm';
+import { EntityManager, FindOptionsWhere, Repository } from 'typeorm';
 
 import { Role } from './entity/role.entity';
 
@@ -15,7 +10,6 @@ import { UpdateRoleDto } from './dto/update-role.dto';
 import { EntitiesService } from '../entities.service';
 
 import { RoleUniqueFields } from './types/role-unique-fields.interface';
-import { TransactionKit } from '../../common/types/transaction-kit.interface';
 import { RoleId } from './types/role-id.interface';
 import { AvailableEntitiesEnum } from '../../common/enums/available-entities.enum';
 
@@ -30,8 +24,7 @@ export class RolesService {
 
 	constructor(
 		@InjectRepository(Role) private roleRepository: Repository<Role>,
-		private entitiesService: EntitiesService,
-		private dataSource: DataSource
+		private entitiesService: EntitiesService
 	) {}
 
 	async getAllRoles(manager: EntityManager | null = null): Promise<Role[]> {
@@ -93,7 +86,10 @@ export class RolesService {
 	}
 
 	async createRole(roleDto: CreateRoleDto): Promise<Role> {
-		const { queryRunner, repository } = this.getQueryRunnerAndRepository();
+		const { queryRunner, repository } =
+			this.entitiesService.getTransactionKit<Role>(
+				AvailableEntitiesEnum.Role
+			);
 
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
@@ -137,7 +133,9 @@ export class RolesService {
 
 	async updateRole(roleDto: UpdateRoleDto, id: number): Promise<Role> {
 		const { queryRunner, repository, manager } =
-			this.getQueryRunnerAndRepository();
+			this.entitiesService.getTransactionKit<Role>(
+				AvailableEntitiesEnum.Role
+			);
 
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
@@ -185,7 +183,10 @@ export class RolesService {
 	}
 
 	async deleteRole(id: number): Promise<Role> {
-		const { queryRunner, repository } = this.getQueryRunnerAndRepository();
+		const { queryRunner, repository } =
+			this.entitiesService.getTransactionKit<Role>(
+				AvailableEntitiesEnum.Role
+			);
 
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
@@ -234,13 +235,5 @@ export class RolesService {
 			findOptions,
 			'Role'
 		);
-	}
-
-	private getQueryRunnerAndRepository(): TransactionKit<Role> {
-		const queryRunner = this.dataSource.createQueryRunner();
-		const manager = queryRunner.manager;
-		const repository = manager.getRepository(Role);
-
-		return { queryRunner, repository, manager };
 	}
 }

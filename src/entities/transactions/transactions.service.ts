@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, EntityManager, Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 
 import { Transaction } from './entity/transaction.entity';
 import { User } from '../users/entity/user.entity';
@@ -9,7 +9,6 @@ import { Product } from '../products/entity/product.entity';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 
-import { TransactionKit } from '../../common/types/transaction-kit.interface';
 import {
 	TransactionId,
 	TransactionIdType
@@ -26,8 +25,7 @@ export class TransactionsService {
 	constructor(
 		@InjectRepository(Transaction)
 		private transactionRepository: Repository<Transaction>,
-		private entitiesService: EntitiesService,
-		private dataSource: DataSource
+		private entitiesService: EntitiesService
 	) {}
 
 	async getAllTransactions(
@@ -62,7 +60,9 @@ export class TransactionsService {
 		transactionDto: CreateTransactionDto
 	): Promise<Transaction> {
 		const { queryRunner, repository, manager } =
-			this.getQueryRunnerAndRepository();
+			this.entitiesService.getTransactionKit<Transaction>(
+				AvailableEntitiesEnum.Transaction
+			);
 
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
@@ -109,7 +109,9 @@ export class TransactionsService {
 		id: number
 	): Promise<Transaction> {
 		const { queryRunner, repository, manager } =
-			this.getQueryRunnerAndRepository();
+			this.entitiesService.getTransactionKit<Transaction>(
+				AvailableEntitiesEnum.Transaction
+			);
 
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
@@ -150,7 +152,10 @@ export class TransactionsService {
 	}
 
 	async deleteTransaction(id: number): Promise<Transaction> {
-		const { queryRunner, repository } = this.getQueryRunnerAndRepository();
+		const { queryRunner, repository } =
+			this.entitiesService.getTransactionKit<Transaction>(
+				AvailableEntitiesEnum.Transaction
+			);
 
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
@@ -224,14 +229,6 @@ export class TransactionsService {
 			.relation(Transaction, 'user')
 			.of(ids)
 			.set(null);
-	}
-
-	private getQueryRunnerAndRepository(): TransactionKit<Transaction> {
-		const queryRunner = this.dataSource.createQueryRunner();
-		const manager = queryRunner.manager;
-		const repository = manager.getRepository(Transaction);
-
-		return { queryRunner, repository, manager };
 	}
 
 	private async getUserAndProductByIdOrFail(
