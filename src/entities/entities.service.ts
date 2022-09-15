@@ -15,18 +15,26 @@ export class EntitiesService {
 	constructor(private dataSource: DataSource) {}
 
 	async isExist<E>(
-		repository: Repository<E>,
-		keyValue: Partial<E>
+		manager: EntityManager,
+		keyValue: Partial<E>,
+		entity: EntityTarget<E>
 	): Promise<boolean> {
-		const entityName = repository.metadata.tableName;
-		const [field, value] = Object.entries(keyValue)[0];
-		const candidate = await repository
-			.createQueryBuilder(entityName)
-			.select(`${entityName}.${field}`)
-			.where(`${entityName}.${field} = :value`, { value })
-			.getOne();
+		try {
+			const repository = this.getRepository<E>(manager, null, entity);
+			const entityName = repository.metadata.tableName;
+			const [field, value] = Object.entries(keyValue)[0];
+			const candidate = await repository
+				.createQueryBuilder(entityName)
+				.select(`${entityName}.${field}`)
+				.where(`${entityName}.${field} = :value`, { value })
+				.getOne();
 
-		return candidate ? true : false;
+			return candidate ? true : false;
+		} catch (err) {
+			throw new MethodArgumentsException(
+				`Didn't provide [manager] argument`
+			);
+		}
 	}
 
 	doDtoHaveUniqueFields<D>(dto: D, uniqueFields: string[]): boolean {

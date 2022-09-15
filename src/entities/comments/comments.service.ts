@@ -75,12 +75,14 @@ export class CommentsService {
 			const { userId, productId } = commentDataDto;
 
 			const isUser = await this.entitiesService.isExist<User>(
-				manager.getRepository(User),
-				{ id: userId }
+				manager,
+				{ id: userId },
+				User
 			);
 			const isProduct = await this.entitiesService.isExist<Product>(
-				manager.getRepository(Product),
-				{ id: productId }
+				manager,
+				{ id: productId },
+				Product
 			);
 
 			if (!isUser || !isProduct) {
@@ -149,8 +151,9 @@ export class CommentsService {
 		await queryRunner.startTransaction();
 		try {
 			const isComment = await this.entitiesService.isExist<Comment>(
-				manager.getRepository(Comment),
-				{ id }
+				manager,
+				{ id },
+				Comment
 			);
 			if (isComment) {
 				throw new EntityNotFoundException(

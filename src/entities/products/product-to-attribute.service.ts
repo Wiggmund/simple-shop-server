@@ -235,10 +235,9 @@ export class ProductToAttributeService {
 		repository: Repository<Product>
 	): Promise<void> {
 		const isProduct = await this.entitiesService.isExist<Product>(
-			repository,
-			{
-				id: productId
-			}
+			repository.manager,
+			{ id: productId },
+			Product
 		);
 		if (!isProduct) {
 			throw new EntityNotFoundException(
