@@ -69,7 +69,7 @@ export class ProductsService {
 		const repository = this.entitiesService.getRepository(
 			manager,
 			this.productRepository,
-			AvailableEntitiesEnum.Product
+			Product
 		);
 
 		return repository.createQueryBuilder('product').getMany();
@@ -82,7 +82,7 @@ export class ProductsService {
 		const repository = this.entitiesService.getRepository(
 			manager,
 			this.productRepository,
-			AvailableEntitiesEnum.Product
+			Product
 		);
 
 		const candidate = await repository

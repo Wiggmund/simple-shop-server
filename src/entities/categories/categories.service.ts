@@ -36,7 +36,7 @@ export class CategoriesService {
 		const repository = this.entitiesService.getRepository(
 			manager,
 			this.categoryRepository,
-			AvailableEntitiesEnum.Category
+			Category
 		);
 
 		return repository.createQueryBuilder('category').getMany();
@@ -49,7 +49,7 @@ export class CategoriesService {
 		const repository = this.entitiesService.getRepository(
 			manager,
 			this.categoryRepository,
-			AvailableEntitiesEnum.Category
+			Category
 		);
 
 		const candidate = await repository
@@ -73,7 +73,7 @@ export class CategoriesService {
 		const repository = this.entitiesService.getRepository(
 			manager,
 			this.categoryRepository,
-			AvailableEntitiesEnum.Category
+			Category
 		);
 
 		const candidate = await repository

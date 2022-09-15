@@ -33,7 +33,7 @@ export class CommentsService {
 		const repository = this.entitiesService.getRepository(
 			manager,
 			this.commentRepository,
-			AvailableEntitiesEnum.Comment
+			Comment
 		);
 
 		return repository.createQueryBuilder('comment').getMany();
@@ -46,7 +46,7 @@ export class CommentsService {
 		const repository = this.entitiesService.getRepository(
 			manager,
 			this.commentRepository,
-			AvailableEntitiesEnum.Comment
+			Comment
 		);
 
 		const candidate = await repository
@@ -228,7 +228,7 @@ export class CommentsService {
 		const repository = this.entitiesService.getRepository(
 			manager,
 			this.commentRepository,
-			AvailableEntitiesEnum.Comment
+			Comment
 		);
 
 		switch (relatedEntity) {

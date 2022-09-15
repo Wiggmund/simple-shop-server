@@ -44,7 +44,7 @@ export class TransactionsService {
 		const repository = this.entitiesService.getRepository(
 			manager,
 			this.transactionRepository,
-			AvailableEntitiesEnum.Transaction
+			Transaction
 		);
 
 		return repository.createQueryBuilder('transaction').getMany();
@@ -57,7 +57,7 @@ export class TransactionsService {
 		const repository = this.entitiesService.getRepository(
 			manager,
 			this.transactionRepository,
-			AvailableEntitiesEnum.Transaction
+			Transaction
 		);
 
 		const candidate = await repository
@@ -216,7 +216,7 @@ export class TransactionsService {
 		const repository = this.entitiesService.getRepository(
 			manager,
 			this.transactionRepository,
-			AvailableEntitiesEnum.Transaction
+			Transaction
 		);
 
 		switch (relatedEntity) {

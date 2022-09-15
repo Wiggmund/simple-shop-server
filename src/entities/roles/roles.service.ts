@@ -33,7 +33,7 @@ export class RolesService {
 		const repository = this.entitiesService.getRepository(
 			manager,
 			this.roleRepository,
-			AvailableEntitiesEnum.Role
+			Role
 		);
 
 		return repository.createQueryBuilder('role').getMany();
@@ -46,7 +46,7 @@ export class RolesService {
 		const repository = this.entitiesService.getRepository(
 			manager,
 			this.roleRepository,
-			AvailableEntitiesEnum.Role
+			Role
 		);
 
 		const candidate = await repository
@@ -70,7 +70,7 @@ export class RolesService {
 		const repository = this.entitiesService.getRepository(
 			manager,
 			this.roleRepository,
-			AvailableEntitiesEnum.Role
+			Role
 		);
 
 		const candidate = await repository

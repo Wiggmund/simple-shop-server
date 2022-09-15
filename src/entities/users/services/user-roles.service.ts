@@ -8,7 +8,6 @@ import { User } from '../entity/user.entity';
 import { UserIdType } from '../types/user-id.interface';
 import { UsersService } from './users.service';
 import { EntitiesService } from '../../entities.service';
-import { AvailableEntitiesEnum } from '../../../common/enums/available-entities.enum';
 import { EntityFieldsException } from '../../../common/exceptions/entity-fields.exception';
 
 @Injectable()
@@ -28,7 +27,7 @@ export class UserRolesService {
 		const repository = this.entitiesService.getRepository(
 			manager,
 			this.userRepository,
-			AvailableEntitiesEnum.User
+			User
 		);
 
 		return repository
@@ -46,7 +45,7 @@ export class UserRolesService {
 		const repository = this.entitiesService.getRepository(
 			manager,
 			this.userRepository,
-			AvailableEntitiesEnum.User
+			User
 		);
 
 		const { id: roleId, value } =
@@ -77,7 +76,7 @@ export class UserRolesService {
 		const repository = this.entitiesService.getRepository(
 			manager,
 			this.userRepository,
-			AvailableEntitiesEnum.User
+			User
 		);
 
 		const { id: roleId, value } =

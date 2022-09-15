@@ -11,7 +11,6 @@ import { EntitiesService } from '../entities.service';
 import { PhotoFilesService } from './photo-files.service';
 
 import { PhotoId, PhotoIdType } from './types/photo-id.interface';
-import { AvailableEntitiesEnum } from '../../common/enums/available-entities.enum';
 import { EntityNotFoundException } from '../../common/exceptions/entity-not-found.exception';
 
 @Injectable()
@@ -26,7 +25,7 @@ export class PhotosService {
 		const repository = this.entitiesService.getRepository(
 			manager,
 			this.photoRepository,
-			AvailableEntitiesEnum.Photo
+			Photo
 		);
 
 		return repository.createQueryBuilder('photo').getMany();
@@ -39,7 +38,7 @@ export class PhotosService {
 		const repository = this.entitiesService.getRepository(
 			manager,
 			this.photoRepository,
-			AvailableEntitiesEnum.Photo
+			Photo
 		);
 
 		const candidate = await repository
@@ -63,7 +62,7 @@ export class PhotosService {
 		const repository = this.entitiesService.getRepository(
 			manager,
 			this.photoRepository,
-			AvailableEntitiesEnum.Photo
+			Photo
 		);
 
 		const photoDto = new CreatePhotoDto(file);
@@ -94,7 +93,7 @@ export class PhotosService {
 		const repository = this.entitiesService.getRepository(
 			manager,
 			this.photoRepository,
-			AvailableEntitiesEnum.Photo
+			Photo
 		);
 
 		const photo = await this.getPhotoById(id, manager);
@@ -118,7 +117,7 @@ export class PhotosService {
 		const repository = this.entitiesService.getRepository(
 			manager,
 			this.photoRepository,
-			AvailableEntitiesEnum.Photo
+			Photo
 		);
 
 		if (ids.length > 0) {

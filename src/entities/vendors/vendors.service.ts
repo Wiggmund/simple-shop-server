@@ -35,7 +35,7 @@ export class VendorsService {
 		const repository = this.entitiesService.getRepository(
 			manager,
 			this.vendorRepository,
-			AvailableEntitiesEnum.Vendor
+			Vendor
 		);
 
 		return repository.createQueryBuilder('vendor').getMany();
@@ -48,7 +48,7 @@ export class VendorsService {
 		const repository = this.entitiesService.getRepository(
 			manager,
 			this.vendorRepository,
-			AvailableEntitiesEnum.Vendor
+			Vendor
 		);
 
 		const candidate = await repository
@@ -72,7 +72,7 @@ export class VendorsService {
 		const repository = this.entitiesService.getRepository(
 			manager,
 			this.vendorRepository,
-			AvailableEntitiesEnum.Vendor
+			Vendor
 		);
 
 		const candidate = await repository

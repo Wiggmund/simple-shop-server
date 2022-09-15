@@ -49,7 +49,7 @@ export class UsersService {
 		const repository = this.entitiesService.getRepository(
 			manager,
 			this.userRepository,
-			AvailableEntitiesEnum.User
+			User
 		);
 
 		return repository.createQueryBuilder('user').getMany();
@@ -62,7 +62,7 @@ export class UsersService {
 		const repository = this.entitiesService.getRepository(
 			manager,
 			this.userRepository,
-			AvailableEntitiesEnum.User
+			User
 		);
 
 		const candidate = await repository

@@ -36,7 +36,7 @@ export class AttributesService {
 		const repository = this.entitiesService.getRepository(
 			manager,
 			this.attributeRepository,
-			AvailableEntitiesEnum.Attribute
+			Attribute
 		);
 
 		return repository.createQueryBuilder('attribute').getMany();
@@ -49,7 +49,7 @@ export class AttributesService {
 		const repository = this.entitiesService.getRepository(
 			manager,
 			this.attributeRepository,
-			AvailableEntitiesEnum.Attribute
+			Attribute
 		);
 
 		const candidate = await repository
@@ -73,7 +73,7 @@ export class AttributesService {
 		const repository = this.entitiesService.getRepository(
 			manager,
 			this.attributeRepository,
-			AvailableEntitiesEnum.Attribute
+			Attribute
 		);
 
 		const candidate = await repository

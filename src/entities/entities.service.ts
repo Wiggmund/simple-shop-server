@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import {
 	DataSource,
 	EntityManager,
+	EntityTarget,
 	FindOptionsWhere,
 	Repository
 } from 'typeorm';
@@ -47,7 +48,7 @@ export class EntitiesService {
 	getRepository<E>(
 		manager: EntityManager | null = null,
 		repository: Repository<E>,
-		entityName: AvailableEntities
+		entity: EntityTarget<E>
 	): Repository<E> {
 		if (!manager) {
 			if (!repository) {
@@ -59,7 +60,7 @@ export class EntitiesService {
 			return repository;
 		}
 
-		return this.getEntityRepository<E>(manager, entityName);
+		return manager.getRepository<E>(entity);
 	}
 
 	getTransactionKit<E>(entityName: AvailableEntities): TransactionKit<E> {
