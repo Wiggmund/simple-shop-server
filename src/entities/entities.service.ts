@@ -6,17 +6,6 @@ import {
 	FindOptionsWhere,
 	Repository
 } from 'typeorm';
-import { Vendor } from './vendors/entity/vendor.entity';
-import { User } from './users/entity/user.entity';
-import { Transaction } from './transactions/entity/transaction.entity';
-import { Role } from './roles/entity/role.entity';
-import { Product } from './products/entity/product.entity';
-import { Photo } from './photos/entity/photo.entity';
-import { Comment } from './comments/entity/comment.entity';
-import { Category } from './categories/entity/category.entity';
-import { Attribute } from './attributes/entity/attribute.entity';
-import { ProductToAttribute } from './products/entity/product-to-attribute.entity';
-import { AvailableEntities } from '../common/types/available-entities.interface';
 import { TransactionKit } from '../common/types/transaction-kit.interface';
 import { MethodArgumentsException } from '../common/exceptions/method-arguments.exception';
 import { EntityFieldsException } from '../common/exceptions/entity-fields.exception';
@@ -113,43 +102,6 @@ export class EntitiesService {
 		});
 
 		return duplicates;
-	}
-
-	// TODO: Rewrite using generics without switch...case
-	getEntityRepository<E>(
-		manager: EntityManager,
-		entityName: AvailableEntities
-	): Repository<E> {
-		if (!manager) {
-			throw new MethodArgumentsException(
-				`Didn't provide [manager] argument`
-			);
-		}
-
-		switch (entityName) {
-			case 'Vendor':
-				return manager.getRepository(Vendor) as Repository<E>;
-			case 'User':
-				return manager.getRepository(User) as Repository<E>;
-			case 'Transaction':
-				return manager.getRepository(Transaction) as Repository<E>;
-			case 'Role':
-				return manager.getRepository(Role) as Repository<E>;
-			case 'Product':
-				return manager.getRepository(Product) as Repository<E>;
-			case 'ProductToAttribute':
-				return manager.getRepository(
-					ProductToAttribute
-				) as Repository<E>;
-			case 'Photo':
-				return manager.getRepository(Photo) as Repository<E>;
-			case 'Comment':
-				return manager.getRepository(Comment) as Repository<E>;
-			case 'Category':
-				return manager.getRepository(Category) as Repository<E>;
-			case 'Attribute':
-				return manager.getRepository(Attribute) as Repository<E>;
-		}
 	}
 
 	private getFindOptionsToFindDuplicates<E>(
