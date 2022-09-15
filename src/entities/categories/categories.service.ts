@@ -11,7 +11,6 @@ import { EntitiesService } from '../entities.service';
 
 import { CategoryUniqueFields } from './types/category-unique-fields.interface';
 import { CategoryId } from './types/category-id.interface';
-import { AvailableEntitiesEnum } from '../../common/enums/available-entities.enum';
 import { EntityNotFoundException } from '../../common/exceptions/entity-not-found.exception';
 import { DatabaseInternalException } from '../../common/exceptions/database-internal.exception';
 
@@ -92,9 +91,7 @@ export class CategoriesService {
 
 	async createCategory(categoryDto: CreateCategoryDto): Promise<Category> {
 		const { queryRunner, repository } =
-			this.entitiesService.getTransactionKit<Category>(
-				AvailableEntitiesEnum.Category
-			);
+			this.entitiesService.getTransactionKit<Category>(Category);
 
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
@@ -142,9 +139,7 @@ export class CategoriesService {
 		id: number
 	): Promise<Category> {
 		const { queryRunner, repository, manager } =
-			this.entitiesService.getTransactionKit<Category>(
-				AvailableEntitiesEnum.Category
-			);
+			this.entitiesService.getTransactionKit<Category>(Category);
 
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
@@ -191,9 +186,7 @@ export class CategoriesService {
 
 	async deleteCategory(id: number): Promise<Category> {
 		const { queryRunner, repository, manager } =
-			this.entitiesService.getTransactionKit<Category>(
-				AvailableEntitiesEnum.Category
-			);
+			this.entitiesService.getTransactionKit<Category>(Category);
 
 		await queryRunner.connect();
 		await queryRunner.startTransaction();

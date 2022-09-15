@@ -11,7 +11,6 @@ import { EntitiesService } from '../entities.service';
 
 import { AttributeUniqueFields } from './types/attribute-unique-fields.interface';
 import { AttributeId } from './types/attribute-id.interface';
-import { AvailableEntitiesEnum } from '../../common/enums/available-entities.enum';
 import { EntityNotFoundException } from '../../common/exceptions/entity-not-found.exception';
 import { DatabaseInternalException } from '../../common/exceptions/database-internal.exception';
 
@@ -96,9 +95,7 @@ export class AttributesService {
 		attributeDto: CreateAttributeDto
 	): Promise<Attribute> {
 		const { queryRunner, repository } =
-			this.entitiesService.getTransactionKit<Attribute>(
-				AvailableEntitiesEnum.Attribute
-			);
+			this.entitiesService.getTransactionKit<Attribute>(Attribute);
 
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
@@ -146,9 +143,7 @@ export class AttributesService {
 		id: number
 	): Promise<Attribute> {
 		const { queryRunner, repository, manager } =
-			this.entitiesService.getTransactionKit<Attribute>(
-				AvailableEntitiesEnum.Attribute
-			);
+			this.entitiesService.getTransactionKit<Attribute>(Attribute);
 
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
@@ -195,9 +190,7 @@ export class AttributesService {
 
 	async deleteAttribute(id: number): Promise<Attribute> {
 		const { queryRunner, repository, manager } =
-			this.entitiesService.getTransactionKit<Attribute>(
-				AvailableEntitiesEnum.Attribute
-			);
+			this.entitiesService.getTransactionKit<Attribute>(Attribute);
 
 		await queryRunner.connect();
 		await queryRunner.startTransaction();

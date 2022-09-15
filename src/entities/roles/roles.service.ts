@@ -11,7 +11,6 @@ import { EntitiesService } from '../entities.service';
 
 import { RoleUniqueFields } from './types/role-unique-fields.interface';
 import { RoleId } from './types/role-id.interface';
-import { AvailableEntitiesEnum } from '../../common/enums/available-entities.enum';
 import { EntityNotFoundException } from '../../common/exceptions/entity-not-found.exception';
 import { DatabaseInternalException } from '../../common/exceptions/database-internal.exception';
 
@@ -89,9 +88,7 @@ export class RolesService {
 
 	async createRole(roleDto: CreateRoleDto): Promise<Role> {
 		const { queryRunner, repository } =
-			this.entitiesService.getTransactionKit<Role>(
-				AvailableEntitiesEnum.Role
-			);
+			this.entitiesService.getTransactionKit<Role>(Role);
 
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
@@ -136,9 +133,7 @@ export class RolesService {
 
 	async updateRole(roleDto: UpdateRoleDto, id: number): Promise<Role> {
 		const { queryRunner, repository, manager } =
-			this.entitiesService.getTransactionKit<Role>(
-				AvailableEntitiesEnum.Role
-			);
+			this.entitiesService.getTransactionKit<Role>(Role);
 
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
@@ -185,9 +180,7 @@ export class RolesService {
 
 	async deleteRole(id: number): Promise<Role> {
 		const { queryRunner, repository, manager } =
-			this.entitiesService.getTransactionKit<Role>(
-				AvailableEntitiesEnum.Role
-			);
+			this.entitiesService.getTransactionKit<Role>(Role);
 
 		await queryRunner.connect();
 		await queryRunner.startTransaction();

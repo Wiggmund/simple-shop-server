@@ -31,7 +31,6 @@ import {
 import { IProductRelatedEntitiesIds } from './types/product-related-entities-ids.interface';
 
 import { TransactionsService } from '../transactions/transactions.service';
-import { AvailableEntitiesEnum } from '../../common/enums/available-entities.enum';
 import { EntityNotFoundException } from '../../common/exceptions/entity-not-found.exception';
 import { DatabaseInternalException } from '../../common/exceptions/database-internal.exception';
 
@@ -104,9 +103,7 @@ export class ProductsService {
 		files: Array<Express.Multer.File>
 	): Promise<Product> {
 		const { queryRunner, repository, manager } =
-			this.entitiesService.getTransactionKit<Product>(
-				AvailableEntitiesEnum.Product
-			);
+			this.entitiesService.getTransactionKit<Product>(Product);
 
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
@@ -245,9 +242,7 @@ export class ProductsService {
 		id: number
 	): Promise<Product> {
 		const { queryRunner, repository, manager } =
-			this.entitiesService.getTransactionKit<Product>(
-				AvailableEntitiesEnum.Product
-			);
+			this.entitiesService.getTransactionKit<Product>(Product);
 
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
@@ -294,9 +289,7 @@ export class ProductsService {
 
 	async deleteProduct(id: number): Promise<Product> {
 		const { queryRunner, repository, manager } =
-			this.entitiesService.getTransactionKit<Product>(
-				AvailableEntitiesEnum.Product
-			);
+			this.entitiesService.getTransactionKit<Product>(Product);
 
 		await queryRunner.connect();
 		await queryRunner.startTransaction();

@@ -15,7 +15,6 @@ import { EntitiesService } from '../entities.service';
 import { CommentId, CommentIdType } from './types/comment-id.interface';
 import { CommentRelatedEntities } from './types/comment-related-entities.interface';
 import { UserIdType } from '../users/types/user-id.interface';
-import { AvailableEntitiesEnum } from '../../common/enums/available-entities.enum';
 import { EntityNotFoundException } from '../../common/exceptions/entity-not-found.exception';
 import { DatabaseInternalException } from '../../common/exceptions/database-internal.exception';
 
@@ -67,9 +66,7 @@ export class CommentsService {
 		commentDataDto: CreateCommentDataDto
 	): Promise<Comment> {
 		const { queryRunner, repository, manager } =
-			this.entitiesService.getTransactionKit<Comment>(
-				AvailableEntitiesEnum.Comment
-			);
+			this.entitiesService.getTransactionKit<Comment>(Comment);
 
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
@@ -146,9 +143,7 @@ export class CommentsService {
 		id: number
 	): Promise<Comment> {
 		const { queryRunner, repository, manager } =
-			this.entitiesService.getTransactionKit<Comment>(
-				AvailableEntitiesEnum.Comment
-			);
+			this.entitiesService.getTransactionKit<Comment>(Comment);
 
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
@@ -189,9 +184,7 @@ export class CommentsService {
 
 	async deleteComment(id: number): Promise<Comment> {
 		const { queryRunner, repository, manager } =
-			this.entitiesService.getTransactionKit<Comment>(
-				AvailableEntitiesEnum.Comment
-			);
+			this.entitiesService.getTransactionKit<Comment>(Comment);
 
 		await queryRunner.connect();
 		await queryRunner.startTransaction();

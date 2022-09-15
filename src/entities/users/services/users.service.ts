@@ -20,7 +20,6 @@ import { PhotosService } from '../../photos/photos.service';
 import { FileSystemService } from '../../../file-system/file-system.service';
 import { CommentsService } from '../../comments/comments.service';
 import { TransactionsService } from '../../transactions/transactions.service';
-import { AvailableEntitiesEnum } from '../../../common/enums/available-entities.enum';
 import { EntityNotFoundException } from '../../../common/exceptions/entity-not-found.exception';
 import { DatabaseInternalException } from '../../../common/exceptions/database-internal.exception';
 
@@ -84,9 +83,7 @@ export class UsersService {
 		file: Express.Multer.File
 	): Promise<User> {
 		const { queryRunner, repository } =
-			this.entitiesService.getTransactionKit<User>(
-				AvailableEntitiesEnum.User
-			);
+			this.entitiesService.getTransactionKit<User>(User);
 		const doPhotoProvided = Boolean(file);
 
 		await queryRunner.connect();
@@ -150,9 +147,7 @@ export class UsersService {
 
 	async updateUser(userDto: UpdateUserDto, id: number): Promise<User> {
 		const { queryRunner, repository, manager } =
-			this.entitiesService.getTransactionKit<User>(
-				AvailableEntitiesEnum.User
-			);
+			this.entitiesService.getTransactionKit<User>(User);
 
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
@@ -199,9 +194,7 @@ export class UsersService {
 
 	async deleteUser(id: number): Promise<User> {
 		const { queryRunner, repository, manager } =
-			this.entitiesService.getTransactionKit<User>(
-				AvailableEntitiesEnum.User
-			);
+			this.entitiesService.getTransactionKit<User>(User);
 
 		await queryRunner.connect();
 		await queryRunner.startTransaction();

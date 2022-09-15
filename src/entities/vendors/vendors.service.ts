@@ -11,7 +11,6 @@ import { VendorUniqueFields } from './types/vendor-unique-fields.interface';
 import { IVendorID } from './types/vendor-id.interface';
 
 import { EntitiesService } from '../entities.service';
-import { AvailableEntitiesEnum } from '../../common/enums/available-entities.enum';
 import { EntityNotFoundException } from '../../common/exceptions/entity-not-found.exception';
 import { DatabaseInternalException } from '../../common/exceptions/database-internal.exception';
 
@@ -91,9 +90,7 @@ export class VendorsService {
 
 	async createVendor(vendorDto: CreateVendorDto): Promise<Vendor> {
 		const { queryRunner, repository } =
-			this.entitiesService.getTransactionKit<Vendor>(
-				AvailableEntitiesEnum.Vendor
-			);
+			this.entitiesService.getTransactionKit<Vendor>(Vendor);
 
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
@@ -141,9 +138,7 @@ export class VendorsService {
 		id: number
 	): Promise<Vendor> {
 		const { queryRunner, repository, manager } =
-			this.entitiesService.getTransactionKit<Vendor>(
-				AvailableEntitiesEnum.Vendor
-			);
+			this.entitiesService.getTransactionKit<Vendor>(Vendor);
 
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
@@ -190,9 +185,7 @@ export class VendorsService {
 
 	async deleteVendor(id: number): Promise<Vendor> {
 		const { queryRunner, repository, manager } =
-			this.entitiesService.getTransactionKit<Vendor>(
-				AvailableEntitiesEnum.Vendor
-			);
+			this.entitiesService.getTransactionKit<Vendor>(Vendor);
 
 		await queryRunner.connect();
 		await queryRunner.startTransaction();

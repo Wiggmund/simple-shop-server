@@ -63,10 +63,10 @@ export class EntitiesService {
 		return manager.getRepository<E>(entity);
 	}
 
-	getTransactionKit<E>(entityName: AvailableEntities): TransactionKit<E> {
+	getTransactionKit<E>(entity: EntityTarget<E>): TransactionKit<E> {
 		const queryRunner = this.dataSource.createQueryRunner();
 		const manager = queryRunner.manager;
-		const repository = this.getEntityRepository<E>(manager, entityName);
+		const repository = this.getRepository<E>(manager, null, entity);
 
 		return { queryRunner, repository, manager };
 	}

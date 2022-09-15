@@ -18,7 +18,6 @@ import { ProductIdType } from '../products/types/product-id.interface';
 import { TransactionRelatedEntities } from './types/transaction-related-entities.interface';
 
 import { EntitiesService } from '../entities.service';
-import { AvailableEntitiesEnum } from '../../common/enums/available-entities.enum';
 import { EntityNotFoundException } from '../../common/exceptions/entity-not-found.exception';
 import { UsersService } from '../users/services/users.service';
 import { ProductsService } from '../products/products.service';
@@ -78,9 +77,7 @@ export class TransactionsService {
 		transactionDto: CreateTransactionDto
 	): Promise<Transaction> {
 		const { queryRunner, repository, manager } =
-			this.entitiesService.getTransactionKit<Transaction>(
-				AvailableEntitiesEnum.Transaction
-			);
+			this.entitiesService.getTransactionKit<Transaction>(Transaction);
 
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
@@ -127,9 +124,7 @@ export class TransactionsService {
 		id: number
 	): Promise<Transaction> {
 		const { queryRunner, repository, manager } =
-			this.entitiesService.getTransactionKit<Transaction>(
-				AvailableEntitiesEnum.Transaction
-			);
+			this.entitiesService.getTransactionKit<Transaction>(Transaction);
 
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
@@ -177,9 +172,7 @@ export class TransactionsService {
 
 	async deleteTransaction(id: number): Promise<Transaction> {
 		const { queryRunner, repository, manager } =
-			this.entitiesService.getTransactionKit<Transaction>(
-				AvailableEntitiesEnum.Transaction
-			);
+			this.entitiesService.getTransactionKit<Transaction>(Transaction);
 
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
