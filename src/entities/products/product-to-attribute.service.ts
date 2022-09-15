@@ -14,6 +14,7 @@ import { EntityDuplicateException } from '../../common/exceptions/entity-duplica
 import { DeleteProductAttributeDto } from './dto/delete-product-attribute.dto';
 import { AttributeIdType } from '../attributes/types/attribute-id.interface';
 import { ProductsService } from './products.service';
+import { Attribute } from '../attributes/entity/attribute.entity';
 
 @Injectable()
 export class ProductToAttributeService {
@@ -132,7 +133,11 @@ export class ProductToAttributeService {
 			Product
 		);
 
-		await this.checkProductExistence(productId, repository);
+		await this.checkProductAndAttributeExistence(
+			productId,
+			null,
+			repository
+		);
 
 		return repository
 			.createQueryBuilder()
@@ -152,13 +157,12 @@ export class ProductToAttributeService {
 			Product
 		);
 
-		await this.checkProductExistence(productId, repository);
-
-		const attribute = await this.attributesService.getAttributeByName(
-			dto.attribute_name,
-			manager
-		);
-		const [{ id: attributeId }, { value }] = [attribute, dto];
+		const { id: attributeId } =
+			await this.checkProductAndAttributeExistence(
+				productId,
+				dto.attribute_name,
+				repository
+			);
 
 		await this.findDuplicatedProductToAttributeRecord(
 			[{ productId, attributeId }],
@@ -169,7 +173,7 @@ export class ProductToAttributeService {
 			{
 				productId,
 				attributeId,
-				value
+				value: dto.value
 			},
 			manager
 		);
@@ -191,19 +195,19 @@ export class ProductToAttributeService {
 			Product
 		);
 
-		await this.checkProductExistence(productId, productRepository);
-		const attribute = await this.attributesService.getAttributeByName(
-			dto.attribute_name,
-			manager
-		);
-		const [{ id: attributeId }, { value }] = [attribute, dto];
+		const { id: attributeId } =
+			await this.checkProductAndAttributeExistence(
+				productId,
+				dto.attribute_name,
+				productRepository
+			);
 
 		await this.getRecordById(productId, attributeId, manager);
 
 		await repository
 			.createQueryBuilder()
 			.update(ProductToAttribute)
-			.set({ value })
+			.set({ value: dto.value })
 			.where('productId = :productId', { productId })
 			.andWhere('attributeId = :attributeId', { attributeId })
 			.execute();
@@ -220,25 +224,37 @@ export class ProductToAttributeService {
 			Product
 		);
 
-		await this.checkProductExistence(productId, repository);
+		const { id: attributeId } =
+			await this.checkProductAndAttributeExistence(
+				productId,
+				dto.attribute_name,
+				repository
+			);
 
-		const attribute = await this.attributesService.getAttributeByName(
-			dto.attribute_name,
-			manager
-		);
-
-		await this.deleteOneRecord(productId, attribute.id, manager);
+		await this.deleteOneRecord(productId, attributeId, manager);
 	}
 
-	private async checkProductExistence(
+	private async checkProductAndAttributeExistence(
 		productId: ProductIdType,
+		attribute_name: string,
 		repository: Repository<Product>
-	): Promise<void> {
+	): Promise<Attribute | null> {
 		await this.entitiesService.isExist<Product>(
 			repository.manager,
 			{ id: productId },
 			Product
 		);
+
+		if (attribute_name) {
+			const attribute = await this.attributesService.getAttributeByName(
+				attribute_name,
+				repository.manager
+			);
+
+			return attribute;
+		}
+
+		return null;
 	}
 
 	private async findDuplicatedProductToAttributeRecord(
