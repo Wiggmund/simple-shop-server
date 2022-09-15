@@ -19,9 +19,9 @@ export class CategoriesService {
 	private readonly categoryUniqueFieldsToCheck: FindOptionsWhere<CategoryUniqueFields>[] =
 		[{ category_name: '' }];
 
-	private uniqueFields: string[] = this.categoryUniqueFieldsToCheck
-		.map((option) => Object.keys(option))
-		.flat();
+	private uniqueFields: string[] = this.entitiesService.getUniqueFieldsList(
+		this.categoryUniqueFieldsToCheck
+	);
 
 	constructor(
 		@InjectRepository(Category)

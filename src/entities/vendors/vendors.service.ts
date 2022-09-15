@@ -19,10 +19,9 @@ export class VendorsService {
 	private readonly vendorUniqueFieldsToCheck: FindOptionsWhere<VendorUniqueFields>[] =
 		[{ company_name: '' }];
 
-	private uniqueFields: string[] = this.vendorUniqueFieldsToCheck
-		.map((option) => Object.keys(option))
-		.flat();
-
+	private uniqueFields: string[] = this.entitiesService.getUniqueFieldsList(
+		this.vendorUniqueFieldsToCheck
+	);
 	constructor(
 		@InjectRepository(Vendor) private vendorRepository: Repository<Vendor>,
 		private entitiesService: EntitiesService

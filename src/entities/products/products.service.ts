@@ -24,10 +24,7 @@ import { CommentsService } from '../comments/comments.service';
 import { ProductId, ProductIdType } from './types/product-id.interface';
 import { IAttributeIdAndValue } from '../attributes/types/attribute-id-and-value.interface';
 import { PhotoIdType } from '../photos/types/photo-id.interface';
-import {
-	ProductUniqueConditions,
-	ProductUniqueFields
-} from './types/product-unique-conditions.interface';
+import { ProductUniqueConditions } from './types/product-unique-conditions.interface';
 import { IProductRelatedEntitiesIds } from './types/product-related-entities-ids.interface';
 
 import { TransactionsService } from '../transactions/transactions.service';
@@ -39,10 +36,9 @@ export class ProductsService {
 	private readonly productUniqueFieldsToCheck: FindOptionsWhere<ProductUniqueConditions>[] =
 		[{ product_name: '' }];
 
-	private uniqueFields: ProductUniqueFields[] =
+	private uniqueFields: string[] = this.entitiesService.getUniqueFieldsList(
 		this.productUniqueFieldsToCheck
-			.map((option) => Object.keys(option) as ProductUniqueFields[])
-			.flat();
+	);
 
 	constructor(
 		@InjectRepository(Product)

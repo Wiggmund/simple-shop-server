@@ -19,9 +19,9 @@ export class AttributesService {
 	private readonly attributeUniqueFieldsToCheck: FindOptionsWhere<AttributeUniqueFields>[] =
 		[{ attribute_name: '' }];
 
-	private uniqueFields: string[] = this.attributeUniqueFieldsToCheck
-		.map((option) => Object.keys(option))
-		.flat();
+	private uniqueFields: string[] = this.entitiesService.getUniqueFieldsList(
+		this.attributeUniqueFieldsToCheck
+	);
 
 	constructor(
 		@InjectRepository(Attribute)

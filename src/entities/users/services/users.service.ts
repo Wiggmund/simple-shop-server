@@ -28,9 +28,9 @@ export class UsersService {
 	private readonly userUniqueFieldsToCheck: FindOptionsWhere<UserUniqueFields>[] =
 		[{ firstName: '', lastName: '' }, { email: '' }, { phone: '' }];
 
-	private uniqueFields: string[] = this.userUniqueFieldsToCheck
-		.map((option) => Object.keys(option))
-		.flat();
+	private uniqueFields: string[] = this.entitiesService.getUniqueFieldsList(
+		this.userUniqueFieldsToCheck
+	);
 
 	constructor(
 		@InjectRepository(User)

@@ -83,6 +83,10 @@ export class EntitiesService {
 		return this.checkForDuplicates<E>(repository, findOptions, 'Entity');
 	}
 
+	getUniqueFieldsList<E>(conditions: FindOptionsWhere<E>[]): string[] {
+		return conditions.map((option) => Object.keys(option)).flat();
+	}
+
 	private getDuplicatedFields<E>(
 		findOptionItems: Record<string, any>[],
 		entity: E

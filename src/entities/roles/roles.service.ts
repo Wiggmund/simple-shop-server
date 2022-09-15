@@ -19,9 +19,9 @@ export class RolesService {
 	private readonly roleUniqueFieldsToCheck: FindOptionsWhere<RoleUniqueFields>[] =
 		[{ value: '' }];
 
-	private uniqueFields: string[] = this.roleUniqueFieldsToCheck
-		.map((option) => Object.keys(option))
-		.flat();
+	private uniqueFields: string[] = this.entitiesService.getUniqueFieldsList(
+		this.roleUniqueFieldsToCheck
+	);
 
 	constructor(
 		@InjectRepository(Role) private roleRepository: Repository<Role>,
