@@ -42,6 +42,7 @@ import { RefreshToken } from './refreshTokens/entity/refresh-token.entity';
 import { ProductToAttributeService } from './products/product-to-attribute.service';
 import { UserRolesController } from './users/user-roles.controller';
 import { UserRolesService } from './users/services/user-roles.service';
+import { ProductToAttributeController } from './products/product-to-attribute.controller';
 
 @Module({
 	imports: [
@@ -86,6 +87,7 @@ import { UserRolesService } from './users/services/user-roles.service';
 		TransactionsController,
 		RolesController,
 		ProductsController,
+		ProductToAttributeController,
 		CommentsController,
 		CategoriesController,
 		AttributesController,

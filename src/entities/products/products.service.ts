@@ -54,8 +54,10 @@ export class ProductsService {
 		private vendorsService: VendorsService,
 		private attributesService: AttributesService,
 		private fileSystemService: FileSystemService,
-		private productToAttributeService: ProductToAttributeService,
 		private commentsService: CommentsService,
+
+		@Inject(forwardRef(() => ProductToAttributeService))
+		private productToAttributeService: ProductToAttributeService,
 
 		@Inject(forwardRef(() => TransactionsService))
 		private transactionsService: TransactionsService
