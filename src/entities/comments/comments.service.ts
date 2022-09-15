@@ -74,26 +74,16 @@ export class CommentsService {
 			const commentDto = new CreateCommentDto(commentDataDto);
 			const { userId, productId } = commentDataDto;
 
-			const isUser = await this.entitiesService.isExist<User>(
+			await this.entitiesService.isExist<User>(
 				manager,
 				{ id: userId },
 				User
 			);
-			const isProduct = await this.entitiesService.isExist<Product>(
+			await this.entitiesService.isExist<Product>(
 				manager,
 				{ id: productId },
 				Product
 			);
-
-			if (!isUser || !isProduct) {
-				const { entityName, id } = isUser
-					? { entityName: 'Product', id: productId }
-					: { entityName: 'User', id: userId };
-
-				throw new EntityNotFoundException(
-					`${entityName} with given id=${id} not found`
-				);
-			}
 
 			const commentId = (
 				(
@@ -150,16 +140,11 @@ export class CommentsService {
 		await queryRunner.connect();
 		await queryRunner.startTransaction();
 		try {
-			const isComment = await this.entitiesService.isExist<Comment>(
+			await this.entitiesService.isExist<Comment>(
 				manager,
 				{ id },
 				Comment
 			);
-			if (isComment) {
-				throw new EntityNotFoundException(
-					`Comment with given id=${id} not found`
-				);
-			}
 
 			await repository
 				.createQueryBuilder()

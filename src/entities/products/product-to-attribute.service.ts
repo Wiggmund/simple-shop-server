@@ -234,16 +234,11 @@ export class ProductToAttributeService {
 		productId: ProductIdType,
 		repository: Repository<Product>
 	): Promise<void> {
-		const isProduct = await this.entitiesService.isExist<Product>(
+		await this.entitiesService.isExist<Product>(
 			repository.manager,
 			{ id: productId },
 			Product
 		);
-		if (!isProduct) {
-			throw new EntityNotFoundException(
-				`Product with given id=${productId} not found`
-			);
-		}
 	}
 
 	private async findDuplicatedProductToAttributeRecord(

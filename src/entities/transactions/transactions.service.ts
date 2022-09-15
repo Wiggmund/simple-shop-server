@@ -131,17 +131,11 @@ export class TransactionsService {
 		try {
 			const { userId, productId } = transactionDto;
 
-			const isTransaction =
-				await this.entitiesService.isExist<Transaction>(
-					manager,
-					{ id },
-					Transaction
-				);
-			if (!isTransaction) {
-				throw new EntityNotFoundException(
-					`Transaction with given id=${id} not found`
-				);
-			}
+			await this.entitiesService.isExist<Transaction>(
+				manager,
+				{ id },
+				Transaction
+			);
 
 			await this.getUserAndProductByIdOrFail(userId, productId, manager);
 

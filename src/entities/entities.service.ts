@@ -9,6 +9,8 @@ import {
 import { TransactionKit } from '../common/types/transaction-kit.interface';
 import { MethodArgumentsException } from '../common/exceptions/method-arguments.exception';
 import { EntityFieldsException } from '../common/exceptions/entity-fields.exception';
+import { EntityNotFoundException } from '../common/exceptions/entity-not-found.exception';
+import { DatabaseInternalException } from '../common/exceptions/database-internal.exception';
 
 @Injectable()
 export class EntitiesService {
@@ -29,11 +31,24 @@ export class EntitiesService {
 				.where(`${entityName}.${field} = :value`, { value })
 				.getOne();
 
-			return candidate ? true : false;
+			if (!candidate) {
+				throw new EntityNotFoundException(
+					`${entityName} with given ${field}=${value} not found`
+				);
+			}
+
+			return true;
 		} catch (err) {
-			throw new MethodArgumentsException(
-				`Didn't provide [manager] argument`
-			);
+			if (err instanceof MethodArgumentsException) {
+				throw new MethodArgumentsException(
+					`Didn't provide [manager] argument`
+				);
+			}
+			if (err instanceof EntityNotFoundException) {
+				throw err;
+			}
+
+			throw new DatabaseInternalException(err);
 		}
 	}
 
