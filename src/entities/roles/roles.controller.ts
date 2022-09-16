@@ -1,3 +1,5 @@
+import { RolesEnum } from './../../common/enums/roles.enum';
+import { JwtRolesGuard } from './../../common/guards/jwt-role.guard';
 import {
 	Body,
 	Controller,
@@ -5,13 +7,17 @@ import {
 	Get,
 	Param,
 	Post,
-	Put
+	Put,
+	UseGuards
 } from '@nestjs/common';
 import { RolesService } from './roles.service';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { DtoValidationPipe } from '../../common/pipes/dto-validation.pipe';
+import { Roles } from '../../common/decorators/role.decorator';
 
+@Roles(RolesEnum.Admin)
+@UseGuards(JwtRolesGuard)
 @Controller('roles')
 export class RolesController {
 	constructor(private rolesService: RolesService) {}

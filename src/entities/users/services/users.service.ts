@@ -1,6 +1,7 @@
 import { forwardRef, HttpException, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Express } from 'express';
+import * as bcrypt from 'bcrypt';
 import { EntityManager, FindOptionsWhere, Repository } from 'typeorm';
 
 import { User } from '../entity/user.entity';
@@ -22,6 +23,8 @@ import { CommentsService } from '../../comments/comments.service';
 import { TransactionsService } from '../../transactions/transactions.service';
 import { EntityNotFoundException } from '../../../common/exceptions/entity-not-found.exception';
 import { DatabaseInternalException } from '../../../common/exceptions/database-internal.exception';
+import { UserRolesService } from './user-roles.service';
+import { RefreshTokenService } from '../../refreshTokens/refresh-token.service';
 
 @Injectable()
 export class UsersService {
@@ -39,9 +42,13 @@ export class UsersService {
 		private photosService: PhotosService,
 		private fileSystemService: FileSystemService,
 		private commentsService: CommentsService,
+		private refreshTokenService: RefreshTokenService,
 
 		@Inject(forwardRef(() => TransactionsService))
-		private transactionsService: TransactionsService
+		private transactionsService: TransactionsService,
+
+		@Inject(forwardRef(() => UserRolesService))
+		private userRolesService: UserRolesService
 	) {}
 
 	async getAllUsers(manager: EntityManager | null = null): Promise<User[]> {
@@ -78,11 +85,35 @@ export class UsersService {
 		return candidate;
 	}
 
+	async getUserByEmail(
+		email: string,
+		manager: EntityManager | null = null
+	): Promise<User> {
+		const repository = this.entitiesService.getRepository(
+			manager,
+			this.userRepository,
+			User
+		);
+
+		const candidate = await repository
+			.createQueryBuilder('user')
+			.where('user.email = :email', { email })
+			.getOne();
+
+		if (!candidate) {
+			throw new EntityNotFoundException(
+				`User with given email=${email} not found`
+			);
+		}
+
+		return candidate;
+	}
+
 	async createUser(
 		userDto: CreateUserDto,
 		file: Express.Multer.File
 	): Promise<User> {
-		const { queryRunner, repository } =
+		const { queryRunner, repository, manager } =
 			this.entitiesService.getTransactionKit<User>(User);
 		const doPhotoProvided = Boolean(file);
 
@@ -96,16 +127,19 @@ export class UsersService {
 				this.userUniqueFieldsToCheck
 			);
 
+			const hashedPassword = await bcrypt.hash(userDto.password, 5);
 			const userId = (
 				(
 					await repository
 						.createQueryBuilder()
 						.insert()
 						.into(User)
-						.values(userDto)
+						.values({ ...userDto, password: hashedPassword })
 						.execute()
 				).identifiers as UserId[]
 			)[0].id;
+
+			await this.userRolesService.addDefaultUserRole(userId, manager);
 
 			if (doPhotoProvided) {
 				const avatar = await this.photosService.createPhoto(
@@ -216,6 +250,8 @@ export class UsersService {
 				transactionIds,
 				manager
 			);
+
+			await this.refreshTokenService.deleteTokenByUserId(id, manager);
 
 			await repository
 				.createQueryBuilder()

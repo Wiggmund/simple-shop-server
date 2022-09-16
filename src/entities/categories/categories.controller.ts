@@ -1,3 +1,5 @@
+import { JwtRolesGuard } from './../../common/guards/jwt-role.guard';
+import { RolesEnum } from './../../common/enums/roles.enum';
 import {
 	Body,
 	Controller,
@@ -5,13 +7,17 @@ import {
 	Get,
 	Param,
 	Post,
-	Put
+	Put,
+	UseGuards
 } from '@nestjs/common';
+import { Roles } from '../../common/decorators/role.decorator';
 import { DtoValidationPipe } from '../../common/pipes/dto-validation.pipe';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 
+@Roles(RolesEnum.Admin)
+@UseGuards(JwtRolesGuard)
 @Controller('categories')
 export class CategoriesController {
 	constructor(private categoriesService: CategoriesService) {}

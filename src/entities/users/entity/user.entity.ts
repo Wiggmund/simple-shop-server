@@ -6,7 +6,6 @@ import {
 	Column,
 	Entity,
 	Index,
-	JoinColumn,
 	JoinTable,
 	ManyToMany,
 	OneToMany,
@@ -58,7 +57,6 @@ export class User {
 	// Relations
 
 	@OneToOne(() => RefreshToken, (refreshToken) => refreshToken.user)
-	@JoinColumn()
 	token: RefreshToken;
 
 	@OneToMany(() => Photo, (photo) => photo.user)

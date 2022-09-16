@@ -43,10 +43,15 @@ import { ProductToAttributeService } from './products/product-to-attribute.servi
 import { UserRolesController } from './users/user-roles.controller';
 import { UserRolesService } from './users/services/user-roles.service';
 import { ProductToAttributeController } from './products/product-to-attribute.controller';
+import { RefreshTokenService } from './refreshTokens/refresh-token.service';
+import { JwtModule } from '@nestjs/jwt';
+import { TokensService } from './refreshTokens/tokens.service';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
 	imports: [
 		FileSystemModule,
+		ConfigModule,
 		TypeOrmModule.forFeature([
 			User,
 			RefreshToken,
@@ -77,7 +82,8 @@ import { ProductToAttributeController } from './products/product-to-attribute.co
 					cb(null, `${uuid.v4()}.${type}`);
 				}
 			})
-		})
+		}),
+		JwtModule.register({})
 	],
 	controllers: [
 		UsersController,
@@ -107,7 +113,15 @@ import { ProductToAttributeController } from './products/product-to-attribute.co
 		CategoriesService,
 		AttributesService,
 		PhotosService,
-		PhotoFilesService
+		PhotoFilesService,
+		RefreshTokenService,
+		TokensService
+	],
+	exports: [
+		UsersService,
+		TokensService,
+		RefreshTokenService,
+		UserRolesService
 	]
 })
 export class EntitiesModule {}

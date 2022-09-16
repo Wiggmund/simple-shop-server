@@ -1,3 +1,5 @@
+import { JwtRolesGuard } from './../../common/guards/jwt-role.guard';
+import { RolesEnum } from './../../common/enums/roles.enum';
 import {
 	Body,
 	Controller,
@@ -7,6 +9,7 @@ import {
 	Post,
 	Put,
 	UploadedFile,
+	UseGuards,
 	UseInterceptors
 } from '@nestjs/common';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -15,7 +18,10 @@ import { UsersService } from './services/users.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Express } from 'express';
 import { DtoValidationPipe } from '../../common/pipes/dto-validation.pipe';
+import { Roles } from '../../common/decorators/role.decorator';
 
+@Roles(RolesEnum.Admin)
+@UseGuards(JwtRolesGuard)
 @Controller('users')
 export class UsersController {
 	constructor(private usersService: UsersService) {}

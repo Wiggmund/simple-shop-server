@@ -1,5 +1,12 @@
 import { User } from '../../../entities/users/entity/user.entity';
-import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+	Column,
+	Entity,
+	JoinColumn,
+	OneToOne,
+	PrimaryGeneratedColumn
+} from 'typeorm';
+import { UserIdType } from '../../users/types/user-id.interface';
 
 @Entity('refresh_tokens')
 export class RefreshToken {
@@ -9,6 +16,10 @@ export class RefreshToken {
 	@Column()
 	token: string;
 
+	@Column()
+	userId: UserIdType;
+
 	@OneToOne(() => User, (user) => user.token)
+	@JoinColumn()
 	user: User;
 }

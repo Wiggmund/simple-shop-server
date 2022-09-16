@@ -1,3 +1,5 @@
+import { JwtRolesGuard } from './../../common/guards/jwt-role.guard';
+import { RolesEnum } from './../../common/enums/roles.enum';
 import {
 	Body,
 	Controller,
@@ -5,13 +7,17 @@ import {
 	Get,
 	Param,
 	Post,
-	Put
+	Put,
+	UseGuards
 } from '@nestjs/common';
 import { DtoValidationPipe } from '../../common/pipes/dto-validation.pipe';
 import { CommentsService } from './comments.service';
 import { CreateCommentDataDto } from './dto/create-comment-data.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
+import { Roles } from '../../common/decorators/role.decorator';
 
+@Roles(RolesEnum.Admin)
+@UseGuards(JwtRolesGuard)
 @Controller('comments')
 export class CommentsController {
 	constructor(private commentsService: CommentsService) {}

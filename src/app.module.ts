@@ -4,6 +4,7 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { EntitiesModule } from './entities/entities.module';
 import { FileSystemModule } from './file-system/file-system.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
 	imports: [
@@ -22,7 +23,8 @@ import { FileSystemModule } from './file-system/file-system.module';
 			logger: 'advanced-console'
 		}),
 		EntitiesModule,
-		FileSystemModule
+		FileSystemModule,
+		AuthModule
 	],
 	controllers: [],
 	providers: []

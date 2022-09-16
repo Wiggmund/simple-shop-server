@@ -1,3 +1,5 @@
+import { RolesEnum } from './../../common/enums/roles.enum';
+import { JwtRolesGuard } from './../../common/guards/jwt-role.guard';
 import {
 	Body,
 	Controller,
@@ -7,6 +9,7 @@ import {
 	Post,
 	Put,
 	UploadedFiles,
+	UseGuards,
 	UseInterceptors
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
@@ -15,7 +18,10 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { Express } from 'express';
 import { ProductCreationDataDto } from './dto/product-creation-data.dto';
 import { DtoValidationPipe } from '../../common/pipes/dto-validation.pipe';
+import { Roles } from '../../common/decorators/role.decorator';
 
+@Roles(RolesEnum.Admin)
+@UseGuards(JwtRolesGuard)
 @Controller('products')
 export class ProductsController {
 	constructor(private productsService: ProductsService) {}

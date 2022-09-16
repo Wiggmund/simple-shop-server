@@ -1,3 +1,5 @@
+import { RolesEnum } from './../../common/enums/roles.enum';
+import { JwtRolesGuard } from './../../common/guards/jwt-role.guard';
 import {
 	Body,
 	Controller,
@@ -6,12 +8,16 @@ import {
 	Param,
 	Post,
 	UploadedFile,
+	UseGuards,
 	UseInterceptors
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Express } from 'express';
+import { Roles } from '../../common/decorators/role.decorator';
 import { PhotosService } from './photos.service';
 
+@Roles(RolesEnum.Admin)
+@UseGuards(JwtRolesGuard)
 @Controller('photos')
 export class PhotosController {
 	constructor(private photosService: PhotosService) {}
