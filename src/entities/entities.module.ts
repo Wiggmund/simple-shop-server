@@ -47,11 +47,13 @@ import { RefreshTokenService } from './refreshTokens/refresh-token.service';
 import { JwtModule } from '@nestjs/jwt';
 import { TokensService } from './refreshTokens/tokens.service';
 import { ConfigModule } from '@nestjs/config';
+import { MailModule } from '../mail/mail.module';
 
 @Module({
 	imports: [
 		FileSystemModule,
 		ConfigModule,
+		MailModule,
 		TypeOrmModule.forFeature([
 			User,
 			RefreshToken,
@@ -121,7 +123,8 @@ import { ConfigModule } from '@nestjs/config';
 		UsersService,
 		TokensService,
 		RefreshTokenService,
-		UserRolesService
+		UserRolesService,
+		MulterModule
 	]
 })
 export class EntitiesModule {}

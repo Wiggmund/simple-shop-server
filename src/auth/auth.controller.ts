@@ -2,6 +2,7 @@ import {
 	Body,
 	Controller,
 	Get,
+	Param,
 	Post,
 	Res,
 	UploadedFile,
@@ -16,6 +17,7 @@ import { TokensService } from '../entities/refreshTokens/tokens.service';
 import { CreateUserDto } from '../entities/users/dto/create-user.dto';
 import { LoginUserDto } from '../entities/users/dto/login-user.dto';
 import { AuthService } from './auth.service';
+import { Express } from 'express';
 
 @Controller('auth')
 export class AuthController {
@@ -24,6 +26,15 @@ export class AuthController {
 		private refreshTokenService: RefreshTokenService,
 		private authService: AuthService
 	) {}
+
+	@Get('activate/:link')
+	async activate(
+		@Param('link') link: string,
+		@Res({ passthrough: true }) response: Response
+	) {
+		await this.authService.activate(link);
+		response.redirect(process.env.CLIENT_URL);
+	}
 
 	@Post('/register')
 	@UseInterceptors(FileInterceptor('avatar'))

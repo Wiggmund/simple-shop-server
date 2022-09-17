@@ -1,3 +1,4 @@
+import { MailService } from './../../../mail/mail.service';
 import { forwardRef, HttpException, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Express } from 'express';
@@ -25,6 +26,7 @@ import { EntityNotFoundException } from '../../../common/exceptions/entity-not-f
 import { DatabaseInternalException } from '../../../common/exceptions/database-internal.exception';
 import { UserRolesService } from './user-roles.service';
 import { RefreshTokenService } from '../../refreshTokens/refresh-token.service';
+import * as uuid from 'uuid';
 
 @Injectable()
 export class UsersService {
@@ -43,6 +45,7 @@ export class UsersService {
 		private fileSystemService: FileSystemService,
 		private commentsService: CommentsService,
 		private refreshTokenService: RefreshTokenService,
+		private mailService: MailService,
 
 		@Inject(forwardRef(() => TransactionsService))
 		private transactionsService: TransactionsService,
@@ -79,6 +82,30 @@ export class UsersService {
 		if (!candidate) {
 			throw new EntityNotFoundException(
 				`User with given id=${id} not found`
+			);
+		}
+
+		return candidate;
+	}
+
+	async getUserByActivationLink(
+		activationLink: string,
+		manager: EntityManager | null = null
+	): Promise<User> {
+		const repository = this.entitiesService.getRepository(
+			manager,
+			this.userRepository,
+			User
+		);
+
+		const candidate = await repository
+			.createQueryBuilder('user')
+			.where('user.activationLink = :activationLink', { activationLink })
+			.getOne();
+
+		if (!candidate) {
+			throw new EntityNotFoundException(
+				`User with given activationLink=${activationLink} not found`
 			);
 		}
 
@@ -128,13 +155,18 @@ export class UsersService {
 			);
 
 			const hashedPassword = await bcrypt.hash(userDto.password, 5);
+			const activationLink = uuid.v4();
 			const userId = (
 				(
 					await repository
 						.createQueryBuilder()
 						.insert()
 						.into(User)
-						.values({ ...userDto, password: hashedPassword })
+						.values({
+							...userDto,
+							password: hashedPassword,
+							activationLink
+						})
 						.execute()
 				).identifiers as UserId[]
 			)[0].id;
@@ -161,11 +193,17 @@ export class UsersService {
 				.getOne();
 
 			await queryRunner.commitTransaction();
+			await this.mailService.sendActivationMail(
+				userDto.email,
+				`${process.env.API_URL}/auth/activate/${activationLink}`
+			);
 			return savedUser;
 		} catch (err) {
 			await queryRunner.rollbackTransaction();
 
 			if (doPhotoProvided) {
+				console.log('file', file);
+				console.log('file.filename', file.filename);
 				this.fileSystemService.deletePhotoFile(file.filename);
 			}
 
@@ -224,6 +262,15 @@ export class UsersService {
 		} finally {
 			await queryRunner.release();
 		}
+	}
+
+	async activateAccount(id: UserIdType): Promise<void> {
+		await this.userRepository
+			.createQueryBuilder()
+			.update(User)
+			.set({ isActivated: true })
+			.where('id = :id', { id })
+			.execute();
 	}
 
 	async deleteUser(id: number): Promise<User> {

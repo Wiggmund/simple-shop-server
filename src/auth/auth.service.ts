@@ -18,6 +18,11 @@ export class AuthService {
 		private tokensService: TokensService
 	) {}
 
+	async activate(link: string) {
+		const user = await this.usersService.getUserByActivationLink(link);
+		await this.usersService.activateAccount(user.id);
+	}
+
 	async register(
 		userDto: CreateUserDto,
 		file: Express.Multer.File
